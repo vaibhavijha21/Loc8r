@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import apiService from '../services/api';
 
 const navLinks = [
   { name: "Home", id: "home" },
@@ -8,8 +9,16 @@ const navLinks = [
   { name: "Contact", id: "contact" },
 ];
 
-const Navbar = () => {
+const Navbar = ({ isAuth, setIsAuthenticated }) => {
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Clear authentication data
+    apiService.clearToken();
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    navigate('/');
+  };
 
   return (
     <motion.nav
@@ -41,21 +50,54 @@ const Navbar = () => {
           </motion.li>
         ))}
 
-        {/* ✅ Login/Signup Button now navigates to /login */}
-        <motion.button
-          whileHover={{
-            scale: 1.05,
-            backgroundColor: "rgba(255,255,255,0.9)",
-            color: "#111827",
-            boxShadow: "0 0 12px rgba(255,255,255,0.5)",
-          }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          onClick={() => navigate("/login")}
-          className="ml-4 px-4 py-2 bg-white/80 text-gray-900 font-semibold rounded-full 
-                     hover:bg-white transition-all duration-300 shadow-sm"
-        >
-          Login / Signup
-        </motion.button>
+        {/* Authentication Buttons */}
+        {isAuth ? (
+          <>
+            <motion.button
+              whileHover={{
+                scale: 1.05,
+                backgroundColor: "rgba(59, 130, 246, 0.9)",
+                color: "#ffffff",
+                boxShadow: "0 0 12px rgba(59, 130, 246, 0.5)",
+              }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              onClick={() => navigate("/dashboard")}
+              className="ml-4 px-4 py-2 bg-blue-500/80 text-white font-semibold rounded-full 
+                         hover:bg-blue-600 transition-all duration-300 shadow-sm"
+            >
+              Dashboard
+            </motion.button>
+            <motion.button
+              whileHover={{
+                scale: 1.05,
+                backgroundColor: "rgba(239, 68, 68, 0.9)",
+                color: "#ffffff",
+                boxShadow: "0 0 12px rgba(239, 68, 68, 0.5)",
+              }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              onClick={handleLogout}
+              className="ml-2 px-4 py-2 bg-red-500/80 text-white font-semibold rounded-full 
+                         hover:bg-red-600 transition-all duration-300 shadow-sm"
+            >
+              Logout
+            </motion.button>
+          </>
+        ) : (
+          <motion.button
+            whileHover={{
+              scale: 1.05,
+              backgroundColor: "rgba(255,255,255,0.9)",
+              color: "#111827",
+              boxShadow: "0 0 12px rgba(255,255,255,0.5)",
+            }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            onClick={() => navigate("/login")}
+            className="ml-4 px-4 py-2 bg-white/80 text-gray-900 font-semibold rounded-full 
+                       hover:bg-white transition-all duration-300 shadow-sm"
+          >
+            Login / Signup
+          </motion.button>
+        )}
       </ul>
     </motion.nav>
   );
