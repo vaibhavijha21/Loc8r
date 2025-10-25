@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import sampleVideo from "../assets/campus.mp4";
 
 const itemVariants = {
@@ -7,6 +8,8 @@ const itemVariants = {
 };
 
 const VideoSection = () => {
+  const navigate = useNavigate(); // ✅ add navigate
+
   return (
     <section className="relative w-full h-screen overflow-hidden">
 
@@ -53,6 +56,7 @@ const VideoSection = () => {
             viewport={{ once: true, amount: 0.3 }}
             whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(0, 255, 150, 0.5)" }}
             transition={{ duration: 0.3 }}
+            onClick={() => navigate("/login")} // ✅ navigate to Authentication
             className="mt-4 px-8 py-3 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-600 transition"
           >
             Get Started

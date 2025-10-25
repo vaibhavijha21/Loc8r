@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const navLinks = [
   { name: "Home", id: "home" },
@@ -8,6 +9,8 @@ const navLinks = [
 ];
 
 const Navbar = () => {
+  const navigate = useNavigate();
+
   return (
     <motion.nav
       initial={{ y: -80, opacity: 0 }}
@@ -17,11 +20,11 @@ const Navbar = () => {
                  bg-white/20 backdrop-blur-md border border-white/30 shadow-lg 
                  flex items-center justify-between px-6 py-3"
     >
-
       <motion.h1
         whileHover={{ scale: 1.05 }}
         transition={{ type: "spring", stiffness: 200 }}
         className="text-2xl font-bold text-white tracking-wide cursor-pointer"
+        onClick={() => navigate("/")}
       >
         Loc8r
       </motion.h1>
@@ -30,7 +33,7 @@ const Navbar = () => {
         {navLinks.map((link, index) => (
           <motion.li
             key={index}
-            whileHover={{ scale: 1.1, color: "#d1d5db" }} // subtle zoom + color change
+            whileHover={{ scale: 1.1, color: "#d1d5db" }}
             transition={{ type: "spring", stiffness: 300 }}
             className="cursor-pointer hover:text-gray-200 transition-all duration-300"
           >
@@ -38,6 +41,7 @@ const Navbar = () => {
           </motion.li>
         ))}
 
+        {/* ✅ Login/Signup Button now navigates to /login */}
         <motion.button
           whileHover={{
             scale: 1.05,
@@ -46,6 +50,7 @@ const Navbar = () => {
             boxShadow: "0 0 12px rgba(255,255,255,0.5)",
           }}
           transition={{ duration: 0.3, ease: "easeOut" }}
+          onClick={() => navigate("/login")}
           className="ml-4 px-4 py-2 bg-white/80 text-gray-900 font-semibold rounded-full 
                      hover:bg-white transition-all duration-300 shadow-sm"
         >
