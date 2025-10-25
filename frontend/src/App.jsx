@@ -13,6 +13,7 @@ import Footer from "./components/Footer";
 
 import Authentication from "./components1/Authentication";
 import LostAndFoundDashboard from "./components1/LostAndFoundDashboard";
+import Profile from "./components/Profile"; // ✅ Import Profile
 
 // --- Landing Page ---
 const LandingPage = ({ isAuth }) => (
@@ -59,6 +60,18 @@ function App() {
                 <Navigate to="/login" replace />
               )
             } 
+          />
+
+          {/* Protected Profile Route */}
+          <Route 
+            path="/profile"
+            element={
+              isAuthenticated ? (
+                <Profile />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
 
           {/* Fallback */}

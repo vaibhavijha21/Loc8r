@@ -1,74 +1,134 @@
 import { motion } from "framer-motion";
-import profilePic from "../assets/user.png"; // use any placeholder image
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import profilePic from "../assets/profile.png";
+import { FaEnvelope, FaPhone, FaLinkedin, FaGithub } from "react-icons/fa";
 
 const Profile = () => {
+  const activeReports = [
+    { title: "Lost: Laptop", description: "Lost in Library - 23rd Oct 2025", status: "Pending" },
+    { title: "Found: ID Card", description: "Found near Cafeteria - 24th Oct 2025", status: "Returned" },
+  ];
+
+  const recentActivities = [
+    "Submitted report for Lost Laptop",
+    "Marked ID Card as returned",
+    "Joined Coding Club",
+    "Attended Tech Talk on AI",
+  ];
+
+  const reportData = [
+    { name: "Pending", value: activeReports.filter(r => r.status === "Pending").length },
+    { name: "Returned", value: activeReports.filter(r => r.status === "Returned").length },
+  ];
+
+  const COLORS = ["#EF4444", "#10B981"]; // Red for Pending, Green for Returned
+
   return (
-    <section className="min-h-screen bg-gray-900 text-white px-6 md:px-16 py-20">
+    <section className="min-h-screen bg-black px-6 md:px-16 py-20">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
-        className="max-w-5xl mx-auto bg-gray-800 rounded-2xl shadow-xl p-10"
+        className="max-w-6xl mx-auto bg-gray-300 rounded-3xl shadow-2xl p-10 grid md:grid-cols-2 gap-10"
       >
-        {/* User Header */}
-        <div className="flex flex-col md:flex-row items-center gap-8 mb-10">
+        {/* Left Column: Profile Info */}
+        <motion.div
+          className="flex flex-col items-center text-center space-y-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
           <img
             src={profilePic}
             alt="User"
-            className="w-32 h-32 rounded-full object-cover border-4 border-gray-700"
+            className="w-36 h-36 rounded-full border-4 border-gray-300 object-cover hover:scale-105 transition-transform duration-300"
           />
-          <div>
-            <h2 className="text-3xl font-bold">Vaibhavi Jha</h2>
-            <p className="text-gray-400">Student, Chitkara University</p>
-            <p className="text-gray-500 mt-2">vaibhavi@example.com</p>
+          <h2 className="text-4xl font-bold mt-2 text-black">Damanpreet Kaur</h2>
+          <p className="text-gray-600">Student, Chitkara University</p>
+          <div className="flex flex-col gap-2 mt-2 text-gray-500">
+            <span><FaEnvelope className="inline mr-2" /> damanpreet@example.com</span>
+            <span><FaPhone className="inline mr-2" /> +91 9876543210</span>
           </div>
+          <div className="flex gap-4 mt-3 justify-center">
+            <a href="#" className="hover:text-gray-700"><FaLinkedin size={24} /></a>
+            <a href="#" className="hover:text-gray-700"><FaGithub size={24} /></a>
+          </div>
+        </motion.div>
+
+        {/* Right Column: Reports + Stats + Activities */}
+        <div className="flex flex-col gap-8">
+          {/* Active Reports */}
+          <motion.div
+            className="space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <h3 className="text-2xl font-semibold border-b border-gray-300 pb-2 text-black">Active Reports</h3>
+            <div className="space-y-4">
+              {activeReports.map((report, idx) => (
+                <motion.div
+                  key={idx}
+                  className="bg-gray-200 p-5 rounded-xl shadow hover:scale-105 transition-transform duration-300"
+                  whileHover={{ y: -5 }}
+                >
+                  <h4 className="text-lg font-semibold text-black">{report.title}</h4>
+                  <p className="text-gray-700 text-sm mt-1">{report.description}</p>
+                  <span
+                    className={`mt-2 inline-block text-sm ${
+                      report.status === "Pending" ? "text-red-500" : "text-green-500"
+                    }`}
+                  >
+                    Status: {report.status}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Report Statistics */}
+          <motion.div
+            className="bg-gray-200 rounded-xl p-5 shadow"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            <h3 className="text-xl font-semibold mb-3 text-black">Report Statistics</h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={reportData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={70}
+                  label
+                >
+                  {reportData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </motion.div>
+
+          {/* Recent Activities */}
+          <motion.div
+            className="bg-gray-200 rounded-xl p-5 shadow"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
+            <h3 className="text-xl font-semibold mb-3 text-black">Recent Activities</h3>
+            <ul className="list-disc list-inside text-gray-700 space-y-2">
+              {recentActivities.map((act, idx) => (
+                <li key={idx}>{act}</li>
+              ))}
+            </ul>
+          </motion.div>
         </div>
-
-        {/* Active Reports Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="mb-10"
-        >
-          <h3 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
-            Active Reports
-          </h3>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-gray-700 p-5 rounded-xl shadow">
-              <h4 className="text-xl font-semibold">Lost: Laptop</h4>
-              <p className="text-gray-400 text-sm">
-                Lost in Library - Reported on 23rd Oct 2025
-              </p>
-              <span className="text-yellow-400 text-sm mt-2 inline-block">
-                Status: Pending
-              </span>
-            </div>
-
-            <div className="bg-gray-700 p-5 rounded-xl shadow">
-              <h4 className="text-xl font-semibold">Found: ID Card</h4>
-              <p className="text-gray-400 text-sm">
-                Found near Cafeteria - Reported on 24th Oct 2025
-              </p>
-              <span className="text-green-400 text-sm mt-2 inline-block">
-                Status: Returned
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Additional Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          <h3 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
-            Account Info
-          </h3>
-          <p className="text-gray-400">Member since: March 2024</p>
-          <p className="text-gray-400">Total Reports Filed: 5</p>
-        </motion.div>
       </motion.div>
     </section>
   );
