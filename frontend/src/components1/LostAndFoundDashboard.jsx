@@ -106,8 +106,8 @@ const useLocalStorageState = (key, defaultValue) => {
 
 const FilterButton = ({ label, value, isSelected, onClick, activeColor, hoverColor, shadowColor }) => {
     const selectedClasses = `${activeColor} border-current shadow-lg ring-2 ring-offset-2 ring-offset-slate-900/50 ring-opacity-50`;
-    const unselectedClasses = `bg-slate-700 hover:bg-slate-600 border-slate-700 ${hoverColor} ${shadowColor}`;
-    const classes = `px-4 py-2 text-white rounded-lg transition-all duration-200 border text-sm flex-shrink-0 font-medium`;
+    const unselectedClasses = `bg-white hover:bg-blue-400 border-slate-700 ${hoverColor} ${shadowColor}`;
+    const classes = `px-4 py-2 text-slate-700 rounded-lg transition-all duration-200 border text-sm flex-shrink-0 font-medium`;
 
     return (
         <button
