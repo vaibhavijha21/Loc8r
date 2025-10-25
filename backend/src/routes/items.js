@@ -55,7 +55,8 @@ router.get('/', async (req, res) => {
     const [rows] = await pool.query(`
       SELECT i.ItemID, i.Item_name, i.Item_description, i.Item_status,
              l.LostID, l.Lost_Date, l.PossibleLocation,
-             f.FoundID, f.Reported_Date, f.Location
+             f.FoundID, f.Reported_Date, f.Location,
+             (SELECT Url FROM Images im WHERE im.ItemID = i.ItemID LIMIT 1) AS ThumbUrl
       FROM Item i
       LEFT JOIN LostItem l ON i.ItemID = l.ItemID
       LEFT JOIN FoundItem f ON i.ItemID = f.ItemID
@@ -69,32 +70,24 @@ router.get('/', async (req, res) => {
 });
 
 // Get single item details (images + claims)
-
-router.get('/', async (req, res) => {
+router.get('/:itemId', async (req, res) => {
   try {
-    const { name } = req.query;
+    const { itemId } = req.params;
+    const [items] = await pool.query('SELECT * FROM Item WHERE ItemID=?', [itemId]);
+    if (!items.length) return res.status(404).json({ message: 'Item not found' });
+    const item = items[0];
 
-    let sql = `
-      SELECT i.ItemID, i.Item_name, i.Item_description, i.Item_status,
-             l.LostID, l.Lost_Date, l.PossibleLocation,
-             f.FoundID, f.Reported_Date, f.Location
-      FROM Item i
-      LEFT JOIN LostItem l ON i.ItemID = l.ItemID
-      LEFT JOIN FoundItem f ON i.ItemID = f.ItemID
-      WHERE 1=1
-    `;
-    let params = [];
+    const [lost] = await pool.query('SELECT * FROM LostItem WHERE ItemID=?', [itemId]);
+    const [found] = await pool.query('SELECT * FROM FoundItem WHERE ItemID=?', [itemId]);
+    const [images] = await pool.query('SELECT * FROM Images WHERE ItemID=? OR FoundID IN (SELECT FoundID FROM FoundItem WHERE ItemID=?)', [itemId, itemId]);
+    const [claims] = await pool.query(`
+      SELECT c.*, u.User_name, u.Email
+      FROM claim c
+      JOIN Users u ON c.UserID = u.UserID
+      WHERE c.FoundID IN (SELECT FoundID FROM FoundItem WHERE ItemID=?)
+    `, [itemId]);
 
-    if (name) {
-      sql += " AND i.Item_name LIKE ?";
-      params.push(`%${name}%`);
-    }
-
-    sql += " ORDER BY i.ItemID DESC";
-
-    const [rows] = await pool.query(sql, params);
-    res.json(rows);
-
+    res.json({ item, lost: lost[0] || null, found: found[0] || null, images, claims });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

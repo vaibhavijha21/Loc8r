@@ -14,6 +14,7 @@ import Footer from "./components/Footer";
 import BackendAuthentication from "./components1/BackendAuthentication";
 import BackendLostAndFoundDashboard from "./components1/BackendLostAndFoundDashboard";
 import apiService from './services/api';
+import Profile from './components/Profile';
 
 // --- Component for the combined Home/Landing Page ---
 const LandingPage = ({ isAuth, setIsAuthenticated }) => (
@@ -97,6 +98,12 @@ function App() {
                 <Navigate to="/login" replace />
               )
             } 
+          />
+
+          {/* Profile Route */}
+          <Route
+            path="/profile"
+            element={<Profile setIsAuthenticated={setIsAuthenticated} />}
           />
           
           {/* Fallback Route */}

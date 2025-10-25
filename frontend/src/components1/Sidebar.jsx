@@ -26,7 +26,7 @@ const Sidebar = ({ onLogout }) => {
 
   const navItems = [
     { icon: 'bx-search-alt', label: 'Search', link: '#' },
-    { icon: 'bx-home-alt-2', label: 'Home', link: '#' },
+    { icon: 'bx-home-alt-2', label: 'Home', link: '/dashboard' },
     { icon: 'bx-error', label: 'Reports', link: '#' },
     { icon: 'bx-cog', label: 'Settings', link: '#' },
     { icon: 'bx-user-circle', label: 'Profile', link: '/profile' }, // Profile after Settings
@@ -62,7 +62,7 @@ const Sidebar = ({ onLogout }) => {
         {/* Logout Button */}
         <div className="flex flex-col items-center group">
           <button onClick={handleLogout} className="flex flex-col items-center" type="button">
-            <i className="bx bx-log-out text-2xl cursor-pointer text-red-400 hover:text-red-300 transition-colors" />
+            <i className="bx bx-log-out text-2xl cursor-pointer text-gray-400 hover:text-gray-300 transition-colors" />
             <span className="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Logout</span>
           </button>
         </div>

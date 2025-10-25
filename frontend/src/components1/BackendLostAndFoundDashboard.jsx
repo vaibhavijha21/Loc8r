@@ -77,11 +77,19 @@ const ItemCard = ({ item, openModal }) => {
         >
             <div className="relative">
                 <div className="w-full h-48 overflow-hidden">
-                    <img
-                        src={getPlaceholderImage('Other')} // You can enhance this to use actual images from backend
-                        className="object-cover w-full h-full transition-transform duration-300 hover:scale-110"
-                        alt={item.Item_name}
-                    />
+                    {item.ThumbUrl ? (
+                        <img
+                            src={apiService.getUploadUrl(item.ThumbUrl)}
+                            className="object-cover w-full h-full transition-transform duration-300 hover:scale-110"
+                            alt={item.Item_name}
+                        />
+                    ) : (
+                        <img
+                            src={getPlaceholderImage('Other')}
+                            className="object-cover w-full h-full transition-transform duration-300 hover:scale-110"
+                            alt={item.Item_name}
+                        />
+                    )}
                 </div>
                 <div className={`absolute top-3 right-3 ${badgeColor} text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-md capitalize`}>
                     {badgeIcon}
@@ -202,12 +210,20 @@ const ItemModal = ({ item, onClose }) => {
                     
                     <div className="space-y-6">
                         <div className="w-full h-80 overflow-hidden rounded-lg border-2 border-slate-700">
-                            <img 
-                                src={getPlaceholderImage('Other')} 
-                                className="w-full h-full object-cover" 
-                                alt={item.Item_name}
-                            />
-                        </div>
+                                    {item.images && item.images.length ? (
+                                        <img
+                                            src={apiService.getUploadUrl(item.images[0].Url)}
+                                            className="w-full h-full object-cover"
+                                            alt={item.Item_name}
+                                        />
+                                    ) : (
+                                        <img 
+                                            src={getPlaceholderImage('Other')} 
+                                            className="w-full h-full object-cover" 
+                                            alt={item.Item_name}
+                                        />
+                                    )}
+                                </div>
                         
                         <div className="grid grid-cols-2 gap-4 text-sm font-medium">
                             <DetailPill label="Status" value={item.Item_status} color={statusColor} Icon={IconComponent} />
@@ -449,18 +465,32 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
     const filteredItems = useMemo(() => {
         return items
             .filter(item => {
-                const queryMatch = searchTerm.toLowerCase() === '' ||
-                    item.Item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    item.Item_description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    (item.PossibleLocation && item.PossibleLocation.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                    (item.Location && item.Location.toLowerCase().includes(searchTerm.toLowerCase()));
+                const q = searchTerm.toLowerCase();
+                const queryMatch = q === '' ||
+                    (item.Item_name && item.Item_name.toLowerCase().includes(q)) ||
+                    (item.Item_description && item.Item_description.toLowerCase().includes(q)) ||
+                    (item.PossibleLocation && item.PossibleLocation.toLowerCase().includes(q)) ||
+                    (item.Location && item.Location.toLowerCase().includes(q));
 
                 const statusMatch = !selectedStatus || item.Item_status === selectedStatus;
 
-                return queryMatch && statusMatch;
+                const categoryMatch = !selectedCategory || (
+                    (item.Item_category && item.Item_category.toLowerCase() === selectedCategory.toLowerCase()) ||
+                    (item.Item_name && item.Item_name.toLowerCase().includes(selectedCategory.toLowerCase())) ||
+                    (item.Item_description && item.Item_description.toLowerCase().includes(selectedCategory.toLowerCase()))
+                );
+
+                const locationMatch = !selectedLocation || (
+                    (item.PossibleLocation && item.PossibleLocation.toLowerCase() === selectedLocation.toLowerCase()) ||
+                    (item.Location && item.Location.toLowerCase() === selectedLocation.toLowerCase()) ||
+                    (item.PossibleLocation && item.PossibleLocation.toLowerCase().includes(selectedLocation.toLowerCase())) ||
+                    (item.Location && item.Location.toLowerCase().includes(selectedLocation.toLowerCase()))
+                );
+
+                return queryMatch && statusMatch && categoryMatch && locationMatch;
             })
             .sort((a, b) => new Date(b.Lost_Date || b.Reported_Date || 0) - new Date(a.Lost_Date || a.Reported_Date || 0));
-    }, [items, searchTerm, selectedStatus]);
+    }, [items, searchTerm, selectedStatus, selectedCategory, selectedLocation]);
 
     // Derived Counts
     const lostCount = useMemo(() => filteredItems.filter(i => i.Item_status === 'lost').length, [filteredItems]);
@@ -477,7 +507,27 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
     }, []);
 
     const closeReportModal = useCallback(() => setIsReportModalOpen(false), []);
-    const openItemDetailModal = useCallback((item) => setSelectedItem(item), []);
+    const openItemDetailModal = useCallback(async (item) => {
+        try {
+            // fetch full details (images, claims, lost/found info)
+            const data = await apiService.getItem(item.ItemID);
+            // backend returns { item, lost, found, images, claims }
+            const combined = {
+                ...data.item,
+                Lost_Date: data.lost ? data.lost.Lost_Date : data.item.Lost_Date,
+                Reported_Date: data.found ? data.found.Reported_Date : data.item.Reported_Date,
+                PossibleLocation: data.lost ? data.lost.PossibleLocation : data.item.PossibleLocation,
+                Location: data.found ? data.found.Location : data.item.Location,
+                images: data.images || [],
+                claims: data.claims || []
+            };
+            setSelectedItem(combined);
+        } catch (err) {
+            console.error('Failed to load item details', err);
+            // fallback to minimal item
+            setSelectedItem(item);
+        }
+    }, []);
     const closeItemDetailModal = useCallback(() => setSelectedItem(null), []);
     
     const handleLogout = useCallback(() => {
@@ -555,6 +605,43 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
                                             activeColor={value === 'lost' ? 'bg-red-600' : 'bg-green-600'}
                                             hoverColor={value === 'lost' ? 'hover:border-red-500/50' : 'hover:border-green-500/50'}
                                             shadowColor={value === 'lost' ? 'hover:shadow-red-500/20' : 'hover:shadow-green-500/20'}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            {/* Category Filter */}
+                            <div className="space-y-3">
+                                <h4 className="flex items-center gap-2 text-lg font-bold text-purple-400"><Tag /> Category</h4>
+                                <div className="flex flex-wrap gap-3">
+                                    {CATEGORIES.map(cat => (
+                                        <FilterButton
+                                            key={cat}
+                                            label={cat}
+                                            value={cat}
+                                            isSelected={selectedCategory === cat}
+                                            onClick={() => toggleFilter('category', cat, setSelectedCategory)}
+                                            activeColor={'bg-purple-600'}
+                                            hoverColor={'hover:border-purple-500/50'}
+                                            shadowColor={'hover:shadow-purple-500/20'}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Location Filter */}
+                            <div className="space-y-3">
+                                <h4 className="flex items-center gap-2 text-lg font-bold text-purple-400"><MapPin /> Location</h4>
+                                <div className="flex flex-wrap gap-3">
+                                    {LOCATIONS.map(loc => (
+                                        <FilterButton
+                                            key={loc}
+                                            label={loc}
+                                            value={loc}
+                                            isSelected={selectedLocation === loc}
+                                            onClick={() => toggleFilter('location', loc, setSelectedLocation)}
+                                            activeColor={'bg-blue-600'}
+                                            hoverColor={'hover:border-blue-500/50'}
+                                            shadowColor={'hover:shadow-blue-500/20'}
                                         />
                                     ))}
                                 </div>

@@ -2,8 +2,19 @@ import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import profilePic from "../assets/profile.png";
 import { FaEnvelope, FaPhone, FaLinkedin, FaGithub } from "react-icons/fa";
+import Sidebar from '../components1/Sidebar';
+import apiService from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
-const Profile = () => {
+const Profile = ({ setIsAuthenticated }) => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    apiService.clearToken();
+    localStorage.removeItem('user');
+    setIsAuthenticated && setIsAuthenticated(false);
+    navigate('/');
+  };
   const activeReports = [
     { title: "Lost: Laptop", description: "Lost in Library - 23rd Oct 2025", status: "Pending" },
     { title: "Found: ID Card", description: "Found near Cafeteria - 24th Oct 2025", status: "Returned" },
@@ -24,13 +35,17 @@ const Profile = () => {
   const COLORS = ["#EF4444", "#10B981"]; // Red for Pending, Green for Returned
 
   return (
-    <section className="min-h-screen bg-black px-6 md:px-16 py-20">
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-        className="max-w-6xl mx-auto bg-gray-300 rounded-3xl shadow-2xl p-10 grid md:grid-cols-2 gap-10"
-      >
+    <div className="min-h-screen bg-black text-white font-sans">
+      <div className="grid grid-cols-[4rem_1fr] h-screen">
+        <Sidebar onLogout={handleLogout} />
+        <main className="p-6 overflow-y-auto">
+          <section className="min-h-screen bg-black px-6 md:px-16 py-20">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1 }}
+              className="max-w-6xl mx-auto bg-gray-300 rounded-3xl shadow-2xl p-10 grid md:grid-cols-2 gap-10"
+            >
         {/* Left Column: Profile Info */}
         <motion.div
           className="flex flex-col items-center text-center space-y-6"
@@ -129,8 +144,11 @@ const Profile = () => {
             </ul>
           </motion.div>
         </div>
-      </motion.div>
-    </section>
+            </motion.div>
+          </section>
+        </main>
+      </div>
+    </div>
   );
 };
 

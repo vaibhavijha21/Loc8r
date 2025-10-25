@@ -120,6 +120,22 @@ class ApiService {
     return data;
   }
 
+  // Get single item details (includes images, claims, lost/found info)
+  async getItem(itemId) {
+    return this.request(`/items/${itemId}`);
+  }
+
+  // Build full URL for uploaded files (backend serves /uploads statically)
+  getUploadUrl(path) {
+    if (!path) return '';
+    // if DB already stores an absolute URL, return it as-is
+    if (/^https?:\/\//i.test(path)) return path;
+    // API_BASE_URL is like http://localhost:4000/api -> remove /api to get root
+    const root = API_BASE_URL.replace(/\/api\/?$/, '');
+    // ensure path starts with '/'
+    return `${root}${path.startsWith('/') ? path : '/' + path}`;
+  }
+
   // Check if user is authenticated
   isAuthenticated() {
     return !!this.token;

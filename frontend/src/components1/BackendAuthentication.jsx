@@ -11,7 +11,7 @@ const customStyles = `
 }
 
 body {
-	background: #0d0d0eff;
+	background: #f9f9ffff;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -39,7 +39,7 @@ a {
 button {
 	border-radius: 20px;
 	border: 1px solid #eaedf5ff;
-	background-color: #0F172A;
+	background-color: #333;
 	color: #FFFFFF;
 	font-size: 12px;
 	font-weight: bold;
@@ -83,14 +83,15 @@ input {
 }
 
 .container {
-	background-color: #fff;
-	border-radius: 10px;
-  box-shadow:  0 0 20px rgba(42, 75, 141, 0.5);
-	position: relative;
-	overflow: hidden;
-	width: 900px;
-	max-width: 100%;
-	min-height: 500px;
+    background-color: #fff;
+    /* removed rounded corners as requested */
+    border-radius: 0px;
+    box-shadow:  0 0 20px rgba(42, 75, 141, 0.5);
+    position: relative;
+    overflow: hidden;
+    width: 900px;
+    max-width: 100%;
+    min-height: 500px;
 }
 
 .form-container {
@@ -168,7 +169,7 @@ input {
 }
 
 .overlay {
-	background: #1b293cff;
+	background: #000000ff;
 	background-repeat: no-repeat;
 	background-size: cover;
 	background-position: 0 0;
@@ -357,7 +358,7 @@ const BackendAuthentication = ({ setIsAuthenticated }) => {
           {/* Sign Up Container */}
           <div className="form-container sign-up-container">
             <form className="space-y-2" onSubmit={handleSignup}>
-              <h2 className="text-3xl font-extrabold text-center text-gray-600 mt-2 mb-4">
+              <h2 className="text-2xl font-extrabold text-center text-black-600 mt-2 mb-4">
                 🔑Create Your Account
               </h2>
               
@@ -418,7 +419,7 @@ const BackendAuthentication = ({ setIsAuthenticated }) => {
           {/* Sign In Container */}
           <div className="form-container sign-in-container">
             <form className="space-y-2" onSubmit={handleLogin}>
-              <h2 className="text-gray-600 text-3xl font-extrabold text-center">
+              <h2 className="text-black-600 text-3xl font-extrabold text-center">
                 🔐 Login to Loc8r
               </h2>
               

@@ -11,7 +11,11 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 
-app.use(helmet());
+// Configure helmet but allow serving uploaded images to be used cross-origin
+// by setting Cross-Origin-Resource-Policy to 'cross-origin'.
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true
