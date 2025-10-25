@@ -31,7 +31,7 @@ const customStyles = `
 
 body {
 	// background: #1F2937;
-  background: #0d0d0eff;
+  background: #f9f9ffff;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -59,7 +59,7 @@ a {
 button {
 	border-radius: 20px;
 	border: 1px solid #eaedf5ff;
-	background-color: #0F172A;
+	background-color: #171818ff;
 	color: #FFFFFF;
 	font-size: 12px;
 	font-weight: bold;
@@ -97,15 +97,15 @@ form {
 input {
 	background-color: #eee;
 	border: none;
-	padding: 12px 15px;
-	margin: px 0;
+	//padding: 12px 15px;
+	//margin: px 0;
 	width: 100%;
 }
 
 .container {
 	background-color: #fff;
 	border-radius: 10px;
-  box-shadow:  0 0 20px rgba(42, 75, 141, 0.5);
+  box-shadow:  0 0 20px rgba(66, 66, 67, 0.5);
 	position: relative;
 	overflow: hidden;
 	width: 900px;
@@ -192,7 +192,7 @@ input {
 .overlay {
 	// background: #1f3c76;
 	// background: -webkit-linear-gradient(to right, #1f3c76, #1f3c76);
-	background: #1b293cff;
+	background: #0d0d0eff;
 	background-repeat: no-repeat;
 	background-size: cover;
 	background-position: 0 0;
@@ -438,8 +438,8 @@ const Authentication = ({ setIsAuthenticated }) => {
           {/* Sign Up Container */}
           <div className="form-container sign-up-container">
             <form className="space-y-2" onSubmit={handleSignup}>
-              <h2 className="text-3xl font-extrabold text-center text-gray-600 mt-2 mb-4 ">
-                🔑Create Your Account
+              <h2 className="text-2xl font-extrabold text-center text-gray-600 mt-2 mb-4 ">
+                Create Your Account
               </h2>
               
               <input 
@@ -524,8 +524,8 @@ const Authentication = ({ setIsAuthenticated }) => {
           {/* Sign In Container */}
           <div className="form-container sign-in-container">
             <form className="space-y-2" onSubmit={handleLogin}>
-              <h2 className="text-gray-600 text-3xl font-extrabold text-center  ">
-                🔐 Login to Loc8r
+              <h2 className="text-gray-600 text-2xl font-extrabold text-center  ">
+                Login to Loc8r
               </h2>
               <select 
                 id="role" 

@@ -13,7 +13,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="flex flex-col justify-start items-center px-3 py-6 bg-black border-r border-palette h-screen text-palette-main space-y-6">
+    <aside className="flex flex-col justify-start items-center px-3 py-6 bg-black border-r border-slate-700 border-palette h-screen text-palette-main space-y-6">
       {navItems.map((item) => (
         <div key={item.label} className="flex flex-col items-center">
           {item.link.startsWith('/') ? (
