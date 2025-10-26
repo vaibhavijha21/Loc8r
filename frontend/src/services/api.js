@@ -80,6 +80,21 @@ class ApiService {
     });
   }
 
+  // Admin-specific auth endpoints
+  async adminRegister(adminData) {
+    return this.request('/admin/register', {
+      method: 'POST',
+      body: JSON.stringify(adminData),
+    });
+  }
+
+  async adminLogin(credentials) {
+    return this.request('/admin/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  }
+
   // Item methods
   async getItems() {
     return this.request('/items');

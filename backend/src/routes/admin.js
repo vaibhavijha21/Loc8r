@@ -9,9 +9,15 @@ router.post('/register', async (req, res) => {
   try {
     const { Admin_Name, Email, password } = req.body;
     if (!Email || !password) return res.status(400).json({ message: 'Email & password required' });
+    const [exists] = await pool.query('SELECT AdminID FROM Admins WHERE Email = ?', [Email]);
+    if (exists.length) return res.status(400).json({ message: 'Email already exists' });
     const hashed = await hashPassword(password);
-    const [r] = await pool.query('INSERT INTO Admins (Admin_Name, Email, Password_hash) VALUES (?, ?, ?)', [Admin_Name, Email, hashed]);
-    res.json({ AdminID: r.insertId });
+    const [r] = await pool.query('INSERT INTO Admins (Admin_Name, Email, Password_hash) VALUES (?, ?, ?)', [Admin_Name || null, Email, hashed]);
+
+    // create token and return admin info (mirror user register behavior)
+    const admin = { id: r.insertId, name: Admin_Name, email: Email, role: 'admin' };
+    const token = createToken({ id: admin.id, role: admin.role });
+    res.json({ admin, token });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'server error' });

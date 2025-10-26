@@ -245,6 +245,7 @@ const BackendAuthentication = ({ setIsAuthenticated }) => {
   // Login Form State
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [loginRole, setLoginRole] = useState('user');
 
   // Signup Form State
   const [signupUserName, setSignupUserName] = useState('');
@@ -252,6 +253,7 @@ const BackendAuthentication = ({ setIsAuthenticated }) => {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupUserContact, setSignupUserContact] = useState('');
   const [signupUserDept, setSignupUserDept] = useState('');
+  const [signupRole, setSignupRole] = useState('user');
 
   // Handlers for UI
   const handleSignUpClick = () => {
@@ -280,12 +282,18 @@ const BackendAuthentication = ({ setIsAuthenticated }) => {
     }
 
     try {
-      const response = await apiService.login({ Email: email, password });
-      
-      // Store token and user data
-      apiService.setToken(response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      
+      let response;
+      // call admin or user login depending on role
+      if (loginRole === 'admin') {
+        response = await apiService.adminLogin({ Email: email, password });
+        apiService.setToken(response.token);
+        localStorage.setItem('admin', JSON.stringify(response.admin));
+      } else {
+        response = await apiService.login({ Email: email, password });
+        apiService.setToken(response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+
       alert("✅ Login Successful!");
       setIsAuthenticated(true);
       navigate('/dashboard', { replace: true });
@@ -327,18 +335,25 @@ const BackendAuthentication = ({ setIsAuthenticated }) => {
     }
 
     try {
-      const response = await apiService.register({
-        User_name: userName,
-        Contact: userContact,
-        Email: email,
-        User_Department: userDept,
-        password: password
-      });
-      
-      // Store token and user data
-      apiService.setToken(response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      
+      let response;
+      if (signupRole === 'admin') {
+        // create admin account
+        response = await apiService.adminRegister({ Admin_Name: userName, Email: email, password });
+        // admin register now returns { admin, token }
+        apiService.setToken(response.token);
+        localStorage.setItem('admin', JSON.stringify(response.admin));
+      } else {
+        response = await apiService.register({
+          User_name: userName,
+          Contact: userContact,
+          Email: email,
+          User_Department: userDept,
+          password: password
+        });
+        apiService.setToken(response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+
       alert("🎉 Account Created Successfully!");
       setIsAuthenticated(true);
       navigate('/dashboard', { replace: true });
@@ -368,6 +383,17 @@ const BackendAuthentication = ({ setIsAuthenticated }) => {
                 </div>
               )}
               
+              <div className="flex items-center justify-center space-x-4 mb-2">
+                <label className="inline-flex items-center">
+                  <input type="radio" name="signupRole" value="user" checked={signupRole === 'user'} onChange={() => setSignupRole('user')} className="mr-2" />
+                  <span>User</span>
+                </label>
+                <label className="inline-flex items-center">
+                  <input type="radio" name="signupRole" value="admin" checked={signupRole === 'admin'} onChange={() => setSignupRole('admin')} className="mr-2" />
+                  <span>Admin</span>
+                </label>
+              </div>
+
               <input 
                 type="text" 
                 placeholder="Full Name" 
@@ -419,6 +445,17 @@ const BackendAuthentication = ({ setIsAuthenticated }) => {
           {/* Sign In Container */}
           <div className="form-container sign-in-container">
             <form className="space-y-2" onSubmit={handleLogin}>
+              <div className="flex items-center justify-center space-x-4 mb-2">
+                <label className="inline-flex items-center">
+                  <input type="radio" name="loginRole" value="user" checked={loginRole === 'user'} onChange={() => setLoginRole('user')} className="mr-2" />
+                  <span>User</span>
+                </label>
+                <label className="inline-flex items-center">
+                  <input type="radio" name="loginRole" value="admin" checked={loginRole === 'admin'} onChange={() => setLoginRole('admin')} className="mr-2" />
+                  <span>Admin</span>
+                </label>
+              </div>
+
               <h2 className="text-black-600 text-3xl font-extrabold text-center">
                 🔐 Login to Loc8r
               </h2>
