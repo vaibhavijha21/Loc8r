@@ -61,7 +61,7 @@ const ItemGrid = ({ items, openModal }) => {
           <span id="totalCount">{items.length}</span> items found
         </div>
       </div>
-      <div id="itemGrid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+  <div id="itemGrid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 bg-black p-6 rounded-lg">
         {items.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <i className="bx bx-search text-6xl text-gray-500 mb-4"></i>

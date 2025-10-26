@@ -132,7 +132,7 @@ const ItemGrid = ({ items, openModal, totalCount }) => (
                 <span className="font-semibold text-blue-400">{totalCount}</span> items reported
             </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 bg-black p-6 rounded-lg">
             {items.length > 0 ? (
                 items.map(item => (
                     <ItemCard key={item.ItemID} item={item} openModal={openModal} />
@@ -558,7 +558,7 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
 
     if (loading) {
         return (
-            <div style={{ backgroundColor: '#20202A' }} className="min-h-screen bg-black text-white font-sans flex items-center justify-center">
+            <div style={{ backgroundColor: '#40404dff' }} className="min-h-screen bg-black text-white font-sans flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
                     <p className="text-xl">Loading items...</p>
@@ -568,14 +568,14 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
     }
 
     return (
-        <div style={{ backgroundColor: '#20202A' }} className="min-h-screen bg-black text-white font-sans">
+        <div style={{ backgroundColor: '#40404dff' }} className="min-h-screen bg-black text-white font-sans">
             <div className="grid grid-cols-[4rem_1fr_20rem] h-screen max-lg:grid-cols-[1fr_20rem] max-sm:grid-cols-1">
                 <Sidebar onLogout={handleLogout} />
                 {/* Main Content */}
-                <main style={{ backgroundColor: '#20202A' }} className="p-6 flex flex-col gap-6 overflow-y-auto max-sm:order-2 bg-black">
+                <main style={{ backgroundColor: '#40404dff' }} className="p-6 flex flex-col gap-6 overflow-y-auto max-sm:order-2 bg-black">
                     
                     {/* Search Bar & Report Button */}
-                    <div className="flex flex-col sm:flex-row justify-between items-center rounded-xl p-4 bg-slate-800 border border-slate-700 shadow-xl gap-4 sticky top-0 z-10">
+                    <div className="flex flex-col sm:flex-row justify-between items-center rounded-xl p-4 bg-black border border-slate-700 shadow-xl gap-4 sticky top-0 z-10">
                         <div className="flex items-center gap-3 flex-1 w-full max-w-full">
                             <div className="relative flex-1">
                                 <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
