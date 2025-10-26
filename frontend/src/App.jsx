@@ -55,9 +55,9 @@ function App() {
     setIsAuthenticated(authenticated);
   };
 
-  if (loading) {
+    if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white font-sans flex items-center justify-center">
+      <div style={{ backgroundColor: '#20202A' }} className="min-h-screen bg-gray-500 text-white font-sans flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-xl">Loading...</p>

@@ -33,7 +33,7 @@ const Sidebar = ({ onLogout }) => {
   ];
 
   return (
-    <aside className="flex flex-col justify-start items-center px-3 py-6 bg-black border-r border-slate-700 h-screen text-palette-main">
+  <aside style={{ backgroundColor: '#20202A' }} className="flex flex-col justify-start items-center px-3 py-6 bg-gray-800 border-r border-slate-700 h-screen text-palette-main">
       <div className="flex flex-col items-center space-y-6 w-full">
         {navItems.map((item) => (
           <div key={item.label} className="group flex flex-col items-center">

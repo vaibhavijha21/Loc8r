@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Mail, MapPin, Tag, Calendar, X, Search, Plus, List, AlertTriangle, CheckCircle, Smartphone, Map } from 'lucide-react';
 import Sidebar from './Sidebar';
 import apiService from '../services/api';
@@ -38,11 +38,18 @@ const useLocalStorageState = (key, defaultValue) => {
         }
     });
 
+    const prevStateRef = useRef();
+
     useEffect(() => {
-        try {
-            localStorage.setItem(key, JSON.stringify(state));
-        } catch (error) {
-            console.error("Error writing to localStorage key " + key + ":", error);
+        // Only update localStorage if state actually changed
+        const currentStateString = JSON.stringify(state);
+        if (prevStateRef.current !== currentStateString) {
+            try {
+                localStorage.setItem(key, currentStateString);
+                prevStateRef.current = currentStateString;
+            } catch (error) {
+                console.error("Error writing to localStorage key " + key + ":", error);
+            }
         }
     }, [key, state]);
 
@@ -142,7 +149,7 @@ const ItemGrid = ({ items, openModal, totalCount }) => (
 );
 
 const RightSidebar = ({ lostCount, foundCount, recentItems, openReportModal }) => (
-    <aside className="bg-black p-6 border-l border-slate-700 overflow-y-auto max-sm:order-1">
+    <aside style={{ backgroundColor: '#20202A' }} className="bg-black p-6 border-l border-slate-700 overflow-y-auto max-sm:order-1">
         <div className="text-center mb-8">
             <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <Search className="w-8 h-8 text-white" />
@@ -551,7 +558,7 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-black text-white font-sans flex items-center justify-center">
+            <div style={{ backgroundColor: '#20202A' }} className="min-h-screen bg-black text-white font-sans flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
                     <p className="text-xl">Loading items...</p>
@@ -561,11 +568,11 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
     }
 
     return (
-        <div className="min-h-screen bg-black text-white font-sans">
+        <div style={{ backgroundColor: '#20202A' }} className="min-h-screen bg-black text-white font-sans">
             <div className="grid grid-cols-[4rem_1fr_20rem] h-screen max-lg:grid-cols-[1fr_20rem] max-sm:grid-cols-1">
                 <Sidebar onLogout={handleLogout} />
                 {/* Main Content */}
-                <main className="p-6 flex flex-col gap-6 overflow-y-auto max-sm:order-2 bg-black">
+                <main style={{ backgroundColor: '#20202A' }} className="p-6 flex flex-col gap-6 overflow-y-auto max-sm:order-2 bg-black">
                     
                     {/* Search Bar & Report Button */}
                     <div className="flex flex-col sm:flex-row justify-between items-center rounded-xl p-4 bg-slate-800 border border-slate-700 shadow-xl gap-4 sticky top-0 z-10">

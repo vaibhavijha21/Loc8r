@@ -189,7 +189,7 @@ const ItemGrid = ({ items, openModal, totalCount }) => (
 );
 
 const RightSidebar = ({ lostCount, foundCount, recentItems, openReportModal }) => (
-    <aside className="bg-black p-6 border-l border-slate-700 overflow-y-auto max-sm:order-1">
+    <aside className="bg-gray-800 p-6 border-l border-slate-700 overflow-y-auto max-sm:order-1">
         <div className="text-center mb-8">
             <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <Search className="w-8 h-8 text-white" />
@@ -616,11 +616,11 @@ const App = () => {
     }, [selectedItem, isReportModalOpen, closeItemDetailModal, closeReportModal]);
 
     return (
-        <div className="min-h-screen bg-black text-white font-sans">
+        <div className="min-h-screen bg-gray-800 text-white font-sans">
             <div className="grid grid-cols-[4rem_1fr_20rem] h-screen max-lg:grid-cols-[1fr_20rem] max-sm:grid-cols-1">
             <Sidebar />
                 {/* Main Content */}
-                <main className="p-6 flex flex-col gap-6 overflow-y-auto max-sm:order-2 bg-black">
+                <main className="p-6 flex flex-col gap-6 overflow-y-auto max-sm:order-2 bg-gray-800">
                     
                     {/* Search Bar & Report Button */}
                     <div className="flex flex-col sm:flex-row justify-between items-center rounded-xl p-4 bg-slate-800 border border-slate-700 shadow-xl gap-4 sticky top-0 z-10">
