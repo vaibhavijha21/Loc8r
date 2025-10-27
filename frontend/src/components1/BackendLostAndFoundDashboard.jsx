@@ -127,9 +127,9 @@ const ItemCard = ({ item, openModal }) => {
 const ItemGrid = ({ items, openModal, totalCount }) => (
     <div className="flex-1">
         <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-white">All Items</h2>
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-                <span className="font-semibold text-blue-400">{totalCount}</span> items reported
+            <h2 className="text-xl font-bold text-black">All Items</h2>
+            <div className="flex items-center font-bold gap-2 text-sm text-gray-900">
+                <span className="font-bold text-blue-900">{totalCount}</span> items reported
             </div>
         </div>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 bg-black p-6 rounded-lg">
@@ -154,18 +154,18 @@ const RightSidebar = ({ lostCount, foundCount, recentItems, openReportModal }) =
             <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg ring-4 ring-blue-500/20">
                 <Search className="w-8 h-8 text-white" />
             </div>
-            <h3 className="font-bold text-xl text-white mb-2">Lost & Found</h3>
+            <h3 className="font-bold text-xl text-white mb-2">Loc8r</h3>
             <p className="text-sm text-gray-300">Real-Time Overview</p>
         </div>
 
-        <div className="space-y-4 mb-8">
-            <div className="bg-gradient-to-br from-red-500/20 to-red-600/30 border border-red-400/40 rounded-xl p-4 text-center shadow-lg hover:shadow-red-500/25 transition-shadow">
+        <div className=" mb-8 flex flex-row gap-7 max-sm:flex-col ">
+            <div className="flex-1 bg-gradient-to-br from-red-500/20 to-red-600/30 border border-red-400/40 rounded-xl p-4 text-center shadow-lg hover:shadow-red-500/25 transition-shadow">
                 <div className="text-3xl font-bold text-red-400">{lostCount}</div>
-                <div className="text-sm text-red-300 font-medium">Lost Items Reported</div>
+                <div className="text-sm text-red-300 font-medium ">Lost Items </div>
             </div>
-            <div className="bg-gradient-to-br from-green-500/20 to-green-600/30 border border-green-400/40 rounded-xl p-4 text-center shadow-lg hover:shadow-green-500/25 transition-shadow">
+            <div className="flex-1 bg-gradient-to-br from-green-500/20 to-green-600/30 border border-green-400/40 rounded-xl p-4 text-center shadow-lg hover:shadow-green-500/25 transition-shadow">
                 <div className="text-3xl font-bold text-green-400">{foundCount}</div>
-                <div className="text-sm text-green-300 font-medium">Found Items Logged</div>
+                <div className="text-sm text-green-300 font-medium ">Found Items</div>
             </div>
         </div>
 
@@ -174,7 +174,7 @@ const RightSidebar = ({ lostCount, foundCount, recentItems, openReportModal }) =
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 font-semibold transform hover:scale-[1.02] shadow-lg hover:shadow-blue-500/25"
         >
             <Plus className="w-5 h-5" />
-            Report Found Item
+            Report Item
         </button>
 
         <div className="mt-8">
@@ -600,10 +600,10 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
                     </div>
 
                     {/* Filters */}
-                    <div className="bg-gray-100 rounded-xl p-6 border border-gray-300 shadow-lg">
+                    <div className="bg-gray-100 rounded-xl p-6 border border-black shadow-lg">
                         <div className="space-y-6">
                             <div className="space-y-3">
-                                <h4 className="flex items-center gap-2 text-lg font-bold text-black"><List /> Status</h4>
+                                <h4 className="flex items-center gap-2 text-lg font-bold text-purple-700"><List /> Status</h4>
                                 <div className="flex flex-wrap gap-3">
                                     {STATUSES.map(({ label, value }) => (
                                         <FilterButton 
@@ -621,7 +621,7 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
                             </div>
                             {/* Category Filter */}
                             <div className="space-y-3">
-                                <h4 className="flex items-center gap-2 text-lg font-bold text-black"><Tag /> Category</h4>
+                                <h4 className="flex items-center gap-2 text-lg font-bold text-blue-700"><Tag /> Category</h4>
                                 <div className="flex flex-wrap gap-3">
                                     {CATEGORIES.map(cat => (
                                         <FilterButton
@@ -640,7 +640,7 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
 
                             {/* Location Filter */}
                             <div className="space-y-3">
-                                <h4 className="flex items-center gap-2 text-lg font-bold text-black"><MapPin /> Location</h4>
+                                <h4 className="flex items-center gap-2 text-lg font-bold text-green-600"><MapPin /> Location</h4>
                                 <div className="flex flex-wrap gap-3">
                                     {LOCATIONS.map(loc => (
                                         <FilterButton

@@ -23,7 +23,7 @@ const RightSidebar = ({ lostCount, foundCount, recentItems, openReportModal }) =
       <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
         <i className="bx bx-search-alt text-3xl text-white"></i>
       </div>
-      <h3 className="font-bold text-lg text-white mb-2">Lost & Found</h3>
+      <h3 className="font-bold text-lg text-white mb-2">Loc8r</h3>
       <p className="text-sm text-gray-400">Dashboard Overview</p>
     </div>
 
