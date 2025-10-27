@@ -149,39 +149,42 @@ const ItemGrid = ({ items, openModal, totalCount }) => (
 );
 
 const RightSidebar = ({ lostCount, foundCount, recentItems, openReportModal }) => (
-    <aside style={{ backgroundColor: '#20202A' }} className="bg-black p-6 border-l border-slate-700 overflow-y-auto max-sm:order-1">
+    <aside className="bg-black p-6 border-l border-gray-700 overflow-y-auto max-sm:order-1">
         <div className="text-center mb-8">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg ring-4 ring-blue-500/20">
                 <Search className="w-8 h-8 text-white" />
             </div>
             <h3 className="font-bold text-xl text-white mb-2">Lost & Found</h3>
-            <p className="text-sm text-gray-400">Real-Time Overview</p>
+            <p className="text-sm text-gray-300">Real-Time Overview</p>
         </div>
 
         <div className="space-y-4 mb-8">
-            <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-4 text-center">
+            <div className="bg-gradient-to-br from-red-500/20 to-red-600/30 border border-red-400/40 rounded-xl p-4 text-center shadow-lg hover:shadow-red-500/25 transition-shadow">
                 <div className="text-3xl font-bold text-red-400">{lostCount}</div>
-                <div className="text-sm text-red-300">Lost Items Reported</div>
+                <div className="text-sm text-red-300 font-medium">Lost Items Reported</div>
             </div>
-            <div className="bg-green-500/20 border border-green-500/30 rounded-xl p-4 text-center">
+            <div className="bg-gradient-to-br from-green-500/20 to-green-600/30 border border-green-400/40 rounded-xl p-4 text-center shadow-lg hover:shadow-green-500/25 transition-shadow">
                 <div className="text-3xl font-bold text-green-400">{foundCount}</div>
-                <div className="text-sm text-green-300">Found Items Logged</div>
+                <div className="text-sm text-green-300 font-medium">Found Items Logged</div>
             </div>
         </div>
 
         <button
             onClick={() => openReportModal('found')}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 font-semibold transform hover:scale-[1.02] shadow-xl shadow-blue-500/20"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 font-semibold transform hover:scale-[1.02] shadow-lg hover:shadow-blue-500/25"
         >
             <Plus className="w-5 h-5" />
             Report Found Item
         </button>
 
         <div className="mt-8">
-            <h4 className="font-semibold text-white text-sm uppercase tracking-wide mb-3">Recent Activity</h4>
+            <h4 className="font-semibold text-white text-sm uppercase tracking-wide mb-3 flex items-center gap-2">
+                <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full"></div>
+                Recent Activity
+            </h4>
             <div className="space-y-4 text-sm">
                 {recentItems.map(item => (
-                    <div key={item.ItemID} className="flex items-start gap-3 p-3 bg-slate-700 rounded-lg">
+                    <div key={item.ItemID} className="flex items-start gap-3 p-3 bg-gray-800 rounded-lg border border-gray-700 shadow-sm hover:shadow-md hover:bg-gray-750 transition-all">
                         <span className={`${item.Item_status === 'lost' ? 'text-red-400' : 'text-green-400'} pt-1`}>
                             {item.Item_status === 'lost' ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
                         </span>
@@ -568,39 +571,39 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
     }
 
     return (
-        <div style={{ backgroundColor: '#40404dff' }} className="min-h-screen bg-black text-white font-sans">
+        <div className="min-h-screen bg-white text-black font-sans">
             <div className="grid grid-cols-[4rem_1fr_20rem] h-screen max-lg:grid-cols-[1fr_20rem] max-sm:grid-cols-1">
                 <Sidebar onLogout={handleLogout} />
                 {/* Main Content */}
-                <main style={{ backgroundColor: '#40404dff' }} className="p-6 flex flex-col gap-6 overflow-y-auto max-sm:order-2 bg-black">
+                <main className="p-6 flex flex-col gap-6 overflow-y-auto max-sm:order-2 bg-white">
                     
                     {/* Search Bar & Report Button */}
-                    <div className="flex flex-col sm:flex-row justify-between items-center rounded-xl p-4 bg-black border border-slate-700 shadow-xl gap-4 sticky top-0 z-10">
+                    <div className="flex flex-col sm:flex-row justify-between items-center rounded-xl p-4 bg-black border border-gray-300 shadow-lg gap-4 sticky top-0 z-10">
                         <div className="flex items-center gap-3 flex-1 w-full max-w-full">
                             <div className="relative flex-1">
-                                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                                <Search className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
                                 <input 
                                     type="text" 
                                     placeholder="Search for lost or found items..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-lg outline-none text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    className="w-full pl-10 pr-4 py-3 bg-gray-100 border border-gray-300 rounded-lg outline-none text-black placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                                 />
                             </div>
                         </div>
                         <button 
                             onClick={() => openReportModal('lost')}
-                            className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-xl shadow-red-500/20"
+                            className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
                         >
                             <AlertTriangle className="w-5 h-5 inline-block mr-2" />Report Lost Item
                         </button>
                     </div>
 
                     {/* Filters */}
-                    <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
+                    <div className="bg-gray-100 rounded-xl p-6 border border-gray-300 shadow-lg">
                         <div className="space-y-6">
                             <div className="space-y-3">
-                                <h4 className="flex items-center gap-2 text-lg font-bold text-purple-400"><List /> Status</h4>
+                                <h4 className="flex items-center gap-2 text-lg font-bold text-black"><List /> Status</h4>
                                 <div className="flex flex-wrap gap-3">
                                     {STATUSES.map(({ label, value }) => (
                                         <FilterButton 
@@ -618,7 +621,7 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
                             </div>
                             {/* Category Filter */}
                             <div className="space-y-3">
-                                <h4 className="flex items-center gap-2 text-lg font-bold text-purple-400"><Tag /> Category</h4>
+                                <h4 className="flex items-center gap-2 text-lg font-bold text-black"><Tag /> Category</h4>
                                 <div className="flex flex-wrap gap-3">
                                     {CATEGORIES.map(cat => (
                                         <FilterButton
@@ -637,7 +640,7 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
 
                             {/* Location Filter */}
                             <div className="space-y-3">
-                                <h4 className="flex items-center gap-2 text-lg font-bold text-purple-400"><MapPin /> Location</h4>
+                                <h4 className="flex items-center gap-2 text-lg font-bold text-black"><MapPin /> Location</h4>
                                 <div className="flex flex-wrap gap-3">
                                     {LOCATIONS.map(loc => (
                                         <FilterButton
