@@ -15,6 +15,7 @@ import BackendAuthentication from "./components1/BackendAuthentication";
 import BackendLostAndFoundDashboard from "./components1/BackendLostAndFoundDashboard";
 import apiService from './services/api';
 import Profile from './components/Profile';
+import AdminProfile from './components1/AdminProfile'; // ✅ Added this import
 
 // --- Component for the combined Home/Landing Page ---
 const LandingPage = ({ isAuth, setIsAuthenticated }) => (
@@ -40,8 +41,9 @@ function App() {
     const checkAuth = () => {
       const token = localStorage.getItem('authToken');
       const user = localStorage.getItem('user');
-      
-      if (token && user) {
+      const admin = localStorage.getItem('admin'); // ✅ Added for admin check
+
+      if (token && (user || admin)) {
         apiService.setToken(token);
         setIsAuthenticated(true);
       }
@@ -55,7 +57,7 @@ function App() {
     setIsAuthenticated(authenticated);
   };
 
-    if (loading) {
+  if (loading) {
     return (
       <div style={{ backgroundColor: '#20202A' }} className="min-h-screen bg-gray-500 text-white font-sans flex items-center justify-center">
         <div className="text-center">
@@ -98,6 +100,18 @@ function App() {
                 <Navigate to="/login" replace />
               )
             } 
+          />
+
+          {/* ✅ New Admin Profile Route */}
+          <Route
+            path="/admin/profile"
+            element={
+              isAuthenticated ? (
+                <AdminProfile />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
 
           {/* Profile Route */}
