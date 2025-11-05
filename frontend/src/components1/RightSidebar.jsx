@@ -18,7 +18,7 @@ const RecentActivityItem = ({ item }) => {
 };
 
 const RightSidebar = ({ lostCount, foundCount, recentItems, openReportModal }) => (
-  <aside className="bg-black p-6 border-l border-palette overflow-y-auto">
+  <aside className="bg-gray-900 p-6 border-l border-palette overflow-y-auto">
     <div className="text-center mb-8">
       <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
         <i className="bx bx-search-alt text-3xl text-white"></i>

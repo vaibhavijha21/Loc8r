@@ -79,7 +79,7 @@ const ItemCard = ({ item, openModal }) => {
 
     return (
         <div
-            className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg hover:shadow-blue-500/30 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+            className="bg-gray-700 rounded-xl border border-slate-700 overflow-hidden shadow-lg hover:shadow-blue-500/30 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
             onClick={() => openModal(item)}
         >
             <div className="relative">
@@ -129,10 +129,10 @@ const ItemGrid = ({ items, openModal, totalCount }) => (
         <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-black">All Items</h2>
             <div className="flex items-center font-bold gap-2 text-sm text-gray-900">
-                <span className="font-bold text-blue-900">{totalCount}</span> items reported
+                <span className="font-bold text-blue-900">{totalCount}</span> item(s) reported
             </div>
         </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 bg-black p-6 rounded-lg">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 bg-gray-100 border border-black shadow-lg  p-6 rounded-xl">
             {items.length > 0 ? (
                 items.map(item => (
                     <ItemCard key={item.ItemID} item={item} openModal={openModal} />
@@ -140,7 +140,7 @@ const ItemGrid = ({ items, openModal, totalCount }) => (
             ) : (
                 <div className="col-span-full text-center py-12 bg-slate-800 rounded-xl border border-slate-700">
                     <Search className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-400 mb-2">No items match your criteria</h3>
+                    <h3 className="text-xl font-semibold text-gray-500 mb-2">No items match your criteria</h3>
                     <p className="text-gray-500">Try removing some filters or broadening your search term.</p>
                 </div>
             )}
@@ -149,7 +149,7 @@ const ItemGrid = ({ items, openModal, totalCount }) => (
 );
 
 const RightSidebar = ({ lostCount, foundCount, recentItems, openReportModal }) => (
-    <aside className="bg-black p-6 border-l border-gray-700 overflow-y-auto max-sm:order-1">
+    <aside className="bg-gray-900 p-6 border-l border-gray-700 overflow-y-auto max-sm:order-1">
         <div className="text-center mb-8">
             <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg ring-4 ring-blue-500/20">
                 <Search className="w-8 h-8 text-white" />
@@ -578,7 +578,7 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
                 <main className="p-6 flex flex-col gap-6 overflow-y-auto max-sm:order-2 bg-white">
                     
                     {/* Search Bar & Report Button */}
-                    <div className="flex flex-col sm:flex-row justify-between items-center rounded-xl p-4 bg-black border border-gray-300 shadow-lg gap-4 sticky top-0 z-10">
+                    <div className="flex flex-col sm:flex-row justify-between items-center rounded-xl p-4 bg-gray-800 border border-gray-300 shadow-lg gap-4 sticky top-0 z-10">
                         <div className="flex items-center gap-3 flex-1 w-full max-w-full">
                             <div className="relative flex-1">
                                 <Search className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
