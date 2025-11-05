@@ -1,7 +1,7 @@
 // src/components1/AdminProfile.jsx
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, Component } from "react";
 import { useNavigate } from "react-router-dom";
-
+import ApiService from "../services/api";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,87 +12,141 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler,
 } from "chart.js";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+// Error Boundary Component
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('AdminProfile Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div className="text-red-500 p-4">Something went wrong. Please try refreshing the page.</div>;
+    }
+    return this.props.children;
+  }
+}
+
+try {
+  ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler
+  );
+} catch (error) {
+  console.error('Failed to register Chart.js components:', error);
+}
 
 const AdminProfile = () => {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [statusFilter, setStatusFilter] = useState("all");
   const chartRef = useRef(null);
+  const api = ApiService; // Using the singleton instance instead of creating new
 
-  // Dummy user data
-  const usersData = [
-    { name: "Alice Johnson", email: "alice@uni.edu", role: "User" },
-    { name: "Bob Smith", email: "bob@uni.edu", role: "Admin" },
-    { name: "Charlie Brown", email: "charlie@uni.edu", role: "User" },
-  ];
+  // Check authentication
+  useEffect(() => {
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    api.setToken(token); // Ensure token is set in API service
+  }, [navigate]);
 
-  // Dummy items data
-  const itemsData = [
-    { name: "Wallet", date: "2 days ago", status: "Found", location: "Library" },
-    { name: "Phone", date: "1 day ago", status: "Lost", location: "Cafeteria" },
-    { name: "Bag", date: "3 days ago", status: "Returned", location: "Reception" },
-  ];
+  // State for real data
+  const [analytics, setAnalytics] = useState({
+    lostItems: 0,
+    foundItems: 0,
+    totalUsers: 0,
+    totalClaims: 0,
+    approvedClaims: 0,
+    rejectedClaims: 0,
+    returnedItems: 0
+  });
+  const [claims, setClaims] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  // Effect to fetch all data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Fetch all data in parallel
+        const [analyticsData, claimsData, usersData, itemsData] = await Promise.all([
+          api.getAdminAnalytics(),
+          api.getAllClaims(), // <-- fetch all claims, not just pending
+          api.getAllUsers(),
+          api.getAllItems()
+        ]);
 
-  // Dummy reports
-  const [reports, setReports] = useState([
-    {
-      item: "Silver Keychain",
-      type: "Found",
-      reporter: "Jane Smith",
-      date: "9/5/2025",
-      status: "In Review",
-    },
-    {
-      item: "Blue Water Bottle",
-      type: "Lost",
-      reporter: "Rahul Sharma",
-      date: "9/1/2025",
-      status: "Resolved",
-    },
-    {
-      item: "Black Backpack",
-      type: "Lost",
-      reporter: "John Doe",
-      date: "8/12/2025",
-      status: "Resolved",
-    },
-  ]);
+        setAnalytics(analyticsData || {
+          lostItems: 0,
+          foundItems: 0,
+          totalUsers: 0,
+          totalClaims: 0,
+          approvedClaims: 0,
+          rejectedClaims: 0,
+          returnedItems: 0
+        });
+        setClaims(claimsData || []);
+        setUsers(usersData || []);
+        setItems(itemsData || []);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        // Set default values if fetch fails
+        setAnalytics({
+          lostItems: 0,
+          foundItems: 0,
+          totalUsers: 0,
+          totalClaims: 0,
+          approvedClaims: 0,
+          rejectedClaims: 0,
+          returnedItems: 0
+        });
+        setClaims([]);
+        setUsers([]);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Pending report count
-  const pendingReports = reports.filter((r) => r.status === "In Review").length;
+    fetchData();
+  }, []);
 
   // Chart data
   const chartData = {
-    labels: ["Apr", "May", "Jun", "Jul", "Aug", "Sep"],
+    labels: ["Lost Items", "Found Items", "Total Claims", "Approved", "Rejected", "Returned"],
     datasets: [
       {
-        label: "Lost",
-        data: [1, 2, 3, 1, 2, 3],
-        borderColor: "#ef4444",
-        backgroundColor: (context) => {
-          const ctx = context.chart.ctx;
-          const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-          gradient.addColorStop(0, "rgba(239,68,68,0.3)");
-          gradient.addColorStop(1, "rgba(239,68,68,0)");
-          return gradient;
-        },
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: "#ef4444",
-      },
-      {
-        label: "Found",
-        data: [1, 2, 1, 2, 1, 2],
+        label: "Count",
+        data: [
+          analytics.lostItems,
+          analytics.foundItems,
+          analytics.totalClaims,
+          analytics.approvedClaims,
+          analytics.rejectedClaims,
+          analytics.returnedItems
+        ],
         borderColor: "#22c55e",
         backgroundColor: (context) => {
           const ctx = context.chart.ctx;
@@ -104,65 +158,70 @@ const AdminProfile = () => {
         fill: true,
         tension: 0.4,
         pointBackgroundColor: "#22c55e",
-      },
+      }
     ],
   };
 
   const chartOptions = {
-  responsive: true,
-  plugins: {
-    legend: {
-      position: "top",
-      labels: { color: "#fff" },
-    },
-    title: {
-      display: false,
-    },
-  },
-  scales: {
-    x: {
-      ticks: { color: "#ccc" },
-      grid: { color: "rgba(255,255,255,0.1)" },
-    },
-    y: {
-      min: 1,
-      max: 10,
-      ticks: {
-        stepSize: 1,
-        color: "#ccc",
-        callback: function (value) {
-          return Number.isInteger(value) ? value : null;
-        },
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+        labels: { color: "#fff" },
       },
-      grid: { color: "rgba(255,255,255,0.1)" },
+      title: {
+        display: false,
+      },
     },
-  },
-};
-
-
-  // Button Handlers
-  const handleMarkInReview = (index) => {
-    const updated = [...reports];
-    updated[index].status = "In Review";
-    setReports(updated);
+    scales: {
+      x: {
+        ticks: { color: "#ccc" },
+        grid: { color: "rgba(255,255,255,0.1)" },
+      },
+      y: {
+        min: 0,
+        ticks: {
+          color: "#ccc",
+          callback: function (value) {
+            return Number.isInteger(value) ? value : null;
+          },
+        },
+        grid: { color: "rgba(255,255,255,0.1)" },
+      },
+    },
   };
 
-  const handleResolve = (index) => {
-    const updated = [...reports];
-    updated[index].status = "Resolved";
-    setReports(updated);
+  const handleLogout = () => {
+    api.clearToken(); // Clear token from API service
+    localStorage.removeItem("token");
+    localStorage.removeItem("authToken");
+    navigate('/login');
   };
 
-  const handleDelete = (index) => {
-    const updated = reports.filter((_, i) => i !== index);
-    setReports(updated);
+  const handleClaimAction = async (claimId, action) => {
+    try {
+      setLoading(true);
+      // Call API to update claim status
+      await api.updateClaimStatus(claimId, action === 'approve' ? 'Approved' : 'Rejected');
+      
+      // Refresh data after action
+      const [claims, analyticsData] = await Promise.all([
+        api.getAllClaims(),
+        api.getAdminAnalytics()
+      ]);
+      
+      setClaims(claims);
+      setAnalytics(analyticsData);
+      
+      // Show success message
+      alert(`Claim ${action}d successfully`);
+    } catch (error) {
+      console.error(`Failed to ${action} claim:`, error);
+      alert(`Failed to ${action} claim`);
+    } finally {
+      setLoading(false);
+    }
   };
-
-  // Filter Reports
-  const filteredReports =
-    statusFilter === "all"
-      ? reports
-      : reports.filter((r) => r.status === statusFilter);
 
   return (
     <div className="flex min-h-screen bg-gray-100 text-gray-800">
@@ -172,7 +231,7 @@ const AdminProfile = () => {
           Loc8r Admin
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          {["dashboard", "users", "items", "reports"].map((section) => (
+          {["dashboard", "users", "items", "claims"].map((section) => (
             <button
               key={section}
               onClick={() => setActiveSection(section)}
@@ -188,10 +247,7 @@ const AdminProfile = () => {
         </nav>
         <div className="p-4 border-t border-gray-700">
           <button
-            onClick={() => {
-              localStorage.removeItem("token");
-              window.location.href = "/";
-            }}
+            onClick={handleLogout}
             className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg"
           >
             Logout
@@ -210,27 +266,27 @@ const AdminProfile = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-white shadow-md rounded-lg p-6">
-                <h2 className="text-gray-500">Total Users</h2>
-                <p className="text-3xl font-bold text-gray-700">
-                  {usersData.length}
-                </p>
-              </div>
-              <div className="bg-white shadow-md rounded-lg p-6">
                 <h2 className="text-gray-500">Lost Items</h2>
                 <p className="text-3xl font-bold text-gray-700">
-                  {itemsData.filter((i) => i.status === "Lost").length}
+                  {analytics.lostItems}
                 </p>
               </div>
               <div className="bg-white shadow-md rounded-lg p-6">
-                <h2 className="text-gray-500">Resolved Reports</h2>
+                <h2 className="text-gray-500">Found Items</h2>
                 <p className="text-3xl font-bold text-gray-700">
-                  {reports.filter((r) => r.status === "Resolved").length}
+                  {analytics.foundItems}
                 </p>
               </div>
               <div className="bg-white shadow-md rounded-lg p-6">
-                <h2 className="text-gray-500">Pending Reports</h2>
+                <h2 className="text-gray-500">Total Users</h2>
                 <p className="text-3xl font-bold text-gray-700">
-                  {pendingReports}
+                  {analytics.totalUsers}
+                </p>
+              </div>
+              <div className="bg-white shadow-md rounded-lg p-6">
+                <h2 className="text-gray-500">Total Claims</h2>
+                <p className="text-3xl font-bold text-gray-700">
+                  {analytics.totalClaims}
                 </p>
               </div>
             </div>
@@ -238,43 +294,61 @@ const AdminProfile = () => {
             {/* Graph */}
             <div className="mt-10 bg-gray-700 p-6 shadow-md rounded-lg">
               <h2 className="text-xl font-semibold mb-4 text-white">
-                Activity (Last 6 Months)
+                Item Statistics
               </h2>
               <Line ref={chartRef} data={chartData} options={chartOptions} />
+            </div>
+
+            {/* Additional Analytics */}
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white p-6 shadow-md rounded-lg">
+                <h2 className="text-xl font-semibold mb-4">Claims Overview</h2>
+                <div className="space-y-2">
+                  <p>Total Claims: {analytics.totalClaims}</p>
+                  <p>Approved Claims: {analytics.approvedClaims}</p>
+                  <p>Rejected Claims: {analytics.rejectedClaims}</p>
+                  <p>Returned Items: {analytics.returnedItems}</p>
+                </div>
+              </div>
+              <div className="bg-white p-6 shadow-md rounded-lg">
+                <h2 className="text-xl font-semibold mb-4">Item Status</h2>
+                <div className="space-y-2">
+                  <p>Lost Items: {analytics.lostItems}</p>
+                  <p>Found Items: {analytics.foundItems}</p>
+                  <p>Success Rate: {
+                    analytics.totalClaims > 0 
+                      ? ((analytics.approvedClaims / analytics.totalClaims) * 100).toFixed(1)
+                      : 0
+                  }%</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Users */}
+        {/* Users Section */}
         {activeSection === "users" && (
           <div>
             <h1 className="text-3xl font-bold mb-6 text-gray-900">
-              Manage Users
+              Users
             </h1>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <table className="w-full border border-gray-300">
-                <thead className="bg-gray-200">
-                  <tr>
-                    <th className="p-2 text-left">Name</th>
-                    <th className="p-2 text-left">Email</th>
-                    <th className="p-2 text-left">Role</th>
-                    <th className="p-2 text-left">Actions</th>
+            <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="p-3">ID</th>
+                    <th className="p-3">Name</th>
+                    <th className="p-3">Email</th>
+                    <th className="p-3">Joined</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {usersData.map((user, i) => (
-                    <tr key={i} className="border-t border-gray-300">
-                      <td className="p-2">{user.name}</td>
-                      <td className="p-2">{user.email}</td>
-                      <td className="p-2">{user.role}</td>
-                      <td className="p-2 space-x-2">
-                        <button className="text-gray-600 hover:underline">
-                          Edit
-                        </button>
-                        <button className="text-gray-500 hover:underline">
-                          Delete
-                        </button>
-                      </td>
+                  {users.map(user => (
+                    <tr key={user.UserID} className="border-t">
+                      <td className="p-3">{user.UserID}</td>
+                      <td className="p-3">{user.User_name}</td>
+                      <td className="p-3">{user.Email}</td>
+                      <td className="p-3">{new Date(user.Created_at).toLocaleDateString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -283,114 +357,51 @@ const AdminProfile = () => {
           </div>
         )}
 
-        {/* Items */}
-        {activeSection === "items" && (
+        {/* Claims Section */}
+        {activeSection === "claims" && (
           <div>
             <h1 className="text-3xl font-bold mb-6 text-gray-900">
-              Lost & Found Items
+              All Claims
             </h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {itemsData.map((item, i) => (
-                <div key={i} className="bg-white p-4 shadow rounded-lg">
-                  <h2 className="font-bold text-lg mb-2">{item.name}</h2>
-                  <p className="text-sm text-gray-500">Status: {item.status}</p>
-                  <p className="text-sm text-gray-500">
-                    Location: {item.location}
-                  </p>
-                  <p className="text-sm text-gray-500">Reported: {item.date}</p>
-                  <button className="mt-3 bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg">
-                    View Details
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Reports */}
-        {activeSection === "reports" && (
-          <div>
-            <h1 className="text-3xl font-bold mb-6 text-gray-900">Reports</h1>
-
-            <div className="flex items-center mb-4 space-x-4">
-              <input
-                type="text"
-                placeholder="Search reports..."
-                className="border border-gray-400 rounded p-2 w-1/3"
-              />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-400 rounded p-2"
-              >
-                <option value="all">All Status</option>
-                <option value="In Review">In Review</option>
-                <option value="Resolved">Resolved</option>
-              </select>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <table className="w-full border border-gray-300">
                 <thead className="bg-gray-200">
                   <tr>
-                    <th className="p-3">Item</th>
-                    <th className="p-3">Type</th>
-                    <th className="p-3">Reporter</th>
-                    <th className="p-3">Date</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3 text-right">Actions</th>
+                    <th className="p-2 text-left">Item Name</th>
+                    <th className="p-2 text-left">Claimer</th>
+                    <th className="p-2 text-left">Status</th>
+                    <th className="p-2 text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredReports.map((report, index) => (
-                    <tr
-                      key={index}
-                      className="border-t border-gray-300 hover:bg-gray-50"
-                    >
-                      <td className="p-3">{report.item}</td>
-                      <td className="p-3">{report.type}</td>
-                      <td className="p-3">{report.reporter}</td>
-                      <td className="p-3">{report.date}</td>
-                      <td className="p-3">
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                            report.status === "Resolved"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-200 text-gray-800"
-                          }`}
-                        >
-                          {report.status}
-                        </span>
-                      </td>
-                      <td className="p-3 text-right space-x-3">
-                        <button
-                          onClick={() => handleMarkInReview(index)}
-                          className="text-gray-600 hover:text-gray-900"
-                        >
-                          Mark In Review
-                        </button>
-                        <button
-                          onClick={() => handleResolve(index)}
-                          className="text-gray-600 hover:text-gray-900"
-                        >
-                          Resolve
-                        </button>
-                        <button
-                          onClick={() => handleDelete(index)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          Delete
-                        </button>
+                  {claims.length > 0 ? claims.map((claim, i) => (
+                    <tr key={i} className="border-t border-gray-300">
+                      <td className="p-2">{claim.Item_name}</td>
+                      <td className="p-2">{claim.claimer_name}</td>
+                      <td className="p-2">{claim.Claim_status}</td>
+                      <td className="p-2 space-x-2">
+                        {claim.Claim_status !== 'Approved' && (
+                          <button
+                            onClick={() => handleClaimAction(claim.ClaimID, 'approve')}
+                            className="text-green-600 hover:underline"
+                          >
+                            Approve
+                          </button>
+                        )}
+                        {claim.Claim_status !== 'Rejected' && (
+                          <button
+                            onClick={() => handleClaimAction(claim.ClaimID, 'reject')}
+                            className="text-red-500 hover:underline"
+                          >
+                            Reject
+                          </button>
+                        )}
                       </td>
                     </tr>
-                  ))}
-                  {filteredReports.length === 0 && (
+                  )) : (
                     <tr>
-                      <td
-                        colSpan="6"
-                        className="text-center p-4 text-gray-500"
-                      >
-                        No reports found for this status.
+                      <td colSpan="4" className="p-4 text-center text-gray-500">
+                        No claims found
                       </td>
                     </tr>
                   )}
@@ -399,9 +410,87 @@ const AdminProfile = () => {
             </div>
           </div>
         )}
+
+        {/* Items Section */}
+        {activeSection === "items" && (
+          <div>
+            <h1 className="text-3xl font-bold mb-6 text-gray-900">
+              All Items
+            </h1>
+            <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+              <div className="flex mb-4 space-x-4">
+                <button 
+                  onClick={() => setStatusFilter("all")}
+                  className={`px-4 py-2 rounded ${statusFilter === "all" ? "bg-gray-700 text-white" : "bg-gray-200"}`}
+                >
+                  All
+                </button>
+                <button 
+                  onClick={() => setStatusFilter("Lost")}
+                  className={`px-4 py-2 rounded ${statusFilter === "Lost" ? "bg-gray-700 text-white" : "bg-gray-200"}`}
+                >
+                  Lost
+                </button>
+                <button 
+                  onClick={() => setStatusFilter("Found")}
+                  className={`px-4 py-2 rounded ${statusFilter === "Found" ? "bg-gray-700 text-white" : "bg-gray-200"}`}
+                >
+                  Found
+                </button>
+              </div>
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="p-3">Item</th>
+                    <th className="p-3">Type</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3">Reporter</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items
+                    .filter(item => statusFilter === "all" || item.Type === statusFilter)
+                    .map(item => (
+                      <tr key={item.ItemID} className="border-t">
+                        <td className="p-3">{item.Item_name}</td>
+                        <td className="p-3">{item.Type}</td>
+                        <td className="p-3">
+                          {item.ItemStatus || item.FoundStatus || "Pending"}
+                        </td>
+                        <td className="p-3">{item.Reporter}</td>
+                      </tr>
+                    ))}
+                  {items.length === 0 && (
+                    <tr>
+                      <td colSpan="4" className="p-4 text-center text-gray-500">
+                        No items found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Loading Overlay */}
+        {loading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-4 rounded-lg">
+              <p className="text-gray-800">Loading...</p>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
 };
 
-export default AdminProfile; 
+// Wrap AdminProfile with ErrorBoundary
+export default function WrappedAdminProfile() {
+  return (
+    <ErrorBoundary>
+      <AdminProfile />
+    </ErrorBoundary>
+  );
+}

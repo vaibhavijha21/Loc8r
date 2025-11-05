@@ -95,6 +95,34 @@ class ApiService {
     });
   }
 
+  // Admin methods
+  async getPendingClaims() {
+    return this.request('/admin/claims/pending');
+  }
+
+  async getAllClaims() {
+    return this.request('/admin/claims');
+  }
+
+  async getAdminAnalytics() {
+    return this.request('/admin/analytics');
+  }
+
+  async getAllUsers() {
+    return this.request('/admin/users');
+  }
+
+  async getAllItems() {
+    return this.request('/admin/items');
+  }
+
+  async updateClaimStatus(claimId, status) {
+    return this.request(`/admin/claims/${claimId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  }
+
   // Item methods
   async getItems() {
     return this.request('/items');
@@ -151,12 +179,12 @@ class ApiService {
     return `${root}${path.startsWith('/') ? path : '/' + path}`;
   }
 
-  // Check if user is authenticated
+
   isAuthenticated() {
     return !!this.token;
   }
 }
 
-// Create and export a singleton instance
+
 const apiService = new ApiService();
 export default apiService;
