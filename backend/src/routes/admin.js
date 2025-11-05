@@ -59,23 +59,43 @@ router.get('/claims/pending', authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
-// 📊 Admin Analytics
-router.get("/analytics", async (req, res) => {
+// Admin: list all claims
+router.get('/claims', authMiddleware, adminOnly, async (req, res) => {
   try {
-    const [lostCount] = await db.query("SELECT COUNT(*) AS count FROM LostItem");
-    const [foundCount] = await db.query("SELECT COUNT(*) AS count FROM FoundItem");
-    const [claims] = await db.query("SELECT COUNT(*) AS count FROM claim");
-    const [approvedClaims] = await db.query(
-      "SELECT COUNT(*) AS count FROM claim WHERE status='approved'"
+    const [rows] = await pool.query(`
+      SELECT c.*, u.User_name AS claimer_name, f.FoundID, i.Item_name
+      FROM claim c
+      JOIN Users u ON c.UserID = u.UserID
+      JOIN FoundItem f ON c.FoundID = f.FoundID
+      JOIN Item i ON f.ItemID = i.ItemID
+      ORDER BY c.ClaimID DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'server error' });
+  }
+});
+
+// 📊 Admin Analytics
+router.get("/analytics", authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const [lostCount] = await pool.query("SELECT COUNT(*) AS count FROM LostItem");
+    const [foundCount] = await pool.query("SELECT COUNT(*) AS count FROM FoundItem");
+    const [userCount] = await pool.query("SELECT COUNT(*) AS count FROM Users");
+    const [claims] = await pool.query("SELECT COUNT(*) AS count FROM claim");
+    const [approvedClaims] = await pool.query(
+      "SELECT COUNT(*) AS count FROM claim WHERE Claim_status='Approved'"
     );
-    const [rejectedClaims] = await db.query(
-      "SELECT COUNT(*) AS count FROM claim WHERE status='rejected'"
+    const [rejectedClaims] = await pool.query(
+      "SELECT COUNT(*) AS count FROM claim WHERE Claim_status='Rejected'"
     );
-    const [history] = await db.query("SELECT COUNT(*) AS count FROM HistoryRecord");
+    const [history] = await pool.query("SELECT COUNT(*) AS count FROM HistoryRecord");
 
     res.json({
       lostItems: lostCount[0].count,
       foundItems: foundCount[0].count,
+      totalUsers: userCount[0].count,
       totalClaims: claims[0].count,
       approvedClaims: approvedClaims[0].count,
       rejectedClaims: rejectedClaims[0].count,
@@ -87,5 +107,91 @@ router.get("/analytics", async (req, res) => {
   }
 });
 
+// Get all users
+router.get("/users", authMiddleware, adminOnly, async (req, res) => {
+  try {
+      const [users] = await pool.query(`
+        SELECT UserID, User_name, Email
+        FROM Users
+        ORDER BY UserID DESC
+      `);
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch users" });
+  }
+});
+
+// Update claim status
+router.put("/claims/:claimId/status", authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { claimId } = req.params;
+    const { status } = req.body;
+    
+    if (!['Approved', 'Rejected', 'Pending'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    await pool.query(
+      'UPDATE claim SET Claim_status = ?, Updated_at = NOW() WHERE ClaimID = ?',
+      [status, claimId]
+    );
+
+    // If approved, update item status and create history record
+    if (status === 'Approved') {
+      const [claim] = await pool.query(
+        'SELECT FoundID, UserID FROM claim WHERE ClaimID = ?',
+        [claimId]
+      );
+      
+      if (claim.length > 0) {
+        // Create history record
+        await pool.query(
+          'INSERT INTO HistoryRecord (ClaimID, FoundID, UserID, Status) VALUES (?, ?, ?, "Returned")',
+          [claimId, claim[0].FoundID, claim[0].UserID]
+        );
+
+        // Update found item status
+        await pool.query(
+          'UPDATE FoundItem SET Status = "Returned" WHERE FoundID = ?',
+          [claim[0].FoundID]
+        );
+      }
+    }
+
+    res.json({ message: 'Claim status updated successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to update claim status' });
+  }
+});
+
+// Get all items (lost and found)
+router.get("/items", authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const [items] = await pool.query(`
+      SELECT 
+        i.ItemID,
+        i.Item_name,
+        CASE 
+          WHEN l.LostID IS NOT NULL THEN 'Lost'
+          WHEN f.FoundID IS NOT NULL THEN 'Found'
+        END as Type,
+        c.Claim_status as ItemStatus,
+        f.Status as FoundStatus,
+        u.User_name as Reporter
+      FROM Item i
+      LEFT JOIN LostItem l ON i.ItemID = l.ItemID
+      LEFT JOIN FoundItem f ON i.ItemID = f.ItemID
+      LEFT JOIN claim c ON f.FoundID = c.FoundID
+      LEFT JOIN Users u ON COALESCE(l.UserID, f.UserID) = u.UserID
+      ORDER BY i.ItemID DESC
+    `);
+    res.json(items);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch items" });
+  }
+});
 
 module.exports = router;
