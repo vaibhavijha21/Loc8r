@@ -1,10 +1,12 @@
 // components/Sidebar.jsx
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import apiService from '../services/api';
+import { Home, Search, FileText, User, LogOut, X } from 'lucide-react';
 
-const Sidebar = ({ onLogout }) => {
+const Sidebar = ({ onLogout, isOpen, onClose, openReportModal }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Basic logout handler — prefer parent-provided handler, otherwise clear local state
   const handleLogout = () => {
@@ -25,51 +27,91 @@ const Sidebar = ({ onLogout }) => {
   };
 
   const navItems = [
-    { icon: 'bx-search-alt', label: 'Search', link: '#' },
-    { icon: 'bx-home-alt-2', label: 'Home', link: '/dashboard' },
-    { icon: 'bx-error', label: 'Reports', link: '#' },
-    { icon: 'bx-cog', label: 'Settings', link: '#' },
-    { icon: 'bx-user-circle', label: 'Profile', link: '/profile' }, // Profile after Settings
+    { icon: Home, label: 'Home', link: '/dashboard', type: 'nav' },
+    { icon: Search, label: 'Search', link: '#', type: 'nav' },
+    { icon: FileText, label: 'Report', link: '#', type: 'report' },
+    { icon: User, label: 'Profile', link: '/profile', type: 'nav' },
   ];
 
+  const isActive = (link) => {
+    if (link === '/dashboard') {
+      return location.pathname === '/dashboard';
+    }
+    return location.pathname === link;
+  };
+
   return (
-  <aside style={{ backgroundColor: '#111827' }} className="flex flex-col justify-start items-center px-3 py-6 bg-gray-800 border-r border-slate-700 h-screen text-palette-main">
-      <div className="flex flex-col items-center space-y-6 w-full">
-        {navItems.map((item) => (
-          <div key={item.label} className="group flex flex-col items-center">
-            {item.link.startsWith('/') ? (
+    <>
+      {/* Sidebar */}
+      <aside
+  className={`fixed inset-y-0 left-0 z-50 bg-slate-700 text-white flex flex-col w-64 transition-transform duration-300 ease-in-out ${
+    isOpen ? 'translate-x-0' : '-translate-x-full'
+  }`}
+>
+
+        {/* Header */}
+        <div className="p-6 border-b border-blue-700/50">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-2xl font-bold text-white">Loc8r</h1>
+            <button 
+              onClick={onClose}
+              className="text-white hover:text-gray-300 transition-colors p-1 hover:bg-blue-700/50 rounded"
+              aria-label="Close sidebar"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <p className="text-sm text-blue-200">Lost & found, redefined.</p>
+        </div>
+
+        {/* Navigation Items */}
+        <nav className="flex-1 px-4 py-6 space-y-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.link);
+            
+            return (
               <button
-                onClick={() => navigate(item.link)}
-                className="flex flex-col items-center focus:outline-none"
+                key={item.label}
+                onClick={() => {
+                  if (item.type === 'report' && openReportModal) {
+                    openReportModal();
+                    onClose?.();
+                  } else if (item.link.startsWith('/')) {
+                    navigate(item.link);
+                    // Close the overlay sidebar on navigation so the target page is visible
+                    onClose?.();
+                  }
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+  active 
+    ? 'text-white'
+    : 'text-blue-200 hover:text-white'
+}`}
+
                 type="button"
               >
-                <i className={`bx ${item.icon} text-2xl text-gray-400 hover:text-gray-300 transition-colors`} />
-                <span className="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {item.label}
-                </span>
+                <Icon className="w-5 h-5" />
+                <span className="font-medium">{item.label}</span>
               </button>
-            ) : (
-              <a href={item.link} className="flex flex-col items-center">
-                <i className={`bx ${item.icon} text-2xl text-gray-400 hover:text-gray-300 transition-colors`} />
-                <span className="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {item.label}
-                </span>
-              </a>
-            )}
-          </div>
-        ))}
+            );
+          })}
+        </nav>
 
         {/* Logout Button */}
-        <div className="flex flex-col items-center group">
-          <button onClick={handleLogout} className="flex flex-col items-center" type="button">
-            <i className="bx bx-log-out text-2xl cursor-pointer text-gray-400 hover:text-gray-300 transition-colors" />
-            <span className="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Logout</span>
+        <div className="p-4 border-t border-blue-700/50">
+          <button 
+            onClick={handleLogout} 
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-blue-200 hover:bg-slate-700/50 hover:text-white transition-colors"
+            type="button"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">Logout</span>
           </button>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
-
 };
 
 export default Sidebar;

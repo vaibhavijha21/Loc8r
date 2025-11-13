@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Mail, MapPin, Tag, Calendar, X, Search, Plus, List, AlertTriangle, CheckCircle, Smartphone, Map } from 'lucide-react';
+import { Mail, MapPin, Tag, Calendar, X, Search, Plus, List, AlertTriangle, CheckCircle, Smartphone, Map, LayoutGrid, ChevronDown } from 'lucide-react';
 import Sidebar from './Sidebar';
 import apiService from '../services/api';
 
@@ -57,14 +57,14 @@ const useLocalStorageState = (key, defaultValue) => {
 };
 
 // Nested Components
-const FilterButton = ({ label, value, isSelected, onClick, activeColor, hoverColor, shadowColor }) => {
-    const selectedClasses = `${activeColor} border-current shadow-lg ring-2 ring-offset-2 ring-offset-slate-900/50 ring-opacity-50`;
-    const unselectedClasses = `bg-slate-700 hover:bg-slate-600 border-slate-700 ${hoverColor} ${shadowColor}`;
-    const classes = `px-4 py-2 text-white rounded-lg transition-all duration-200 border text-sm flex-shrink-0 font-medium`;
-
+const FilterButton = ({ label, value, isSelected, onClick }) => {
     return (
         <button
-            className={`${classes} ${isSelected ? selectedClasses : unselectedClasses}`}
+            className={`px-4 py-2 rounded-lg transition-all duration-200 text-md font-semibold font-medium ${
+                isSelected 
+                    ? 'bg-[#1e3a5f] text-white shadow-md' 
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+            }`}
             onClick={onClick}
         >
             {label}
@@ -73,131 +73,59 @@ const FilterButton = ({ label, value, isSelected, onClick, activeColor, hoverCol
 };
 
 const ItemCard = ({ item, openModal }) => {
-    const badgeColor = item.Item_status === "lost" ? "bg-red-600" : "bg-green-600";
-    const badgeIcon = item.Item_status === "lost" ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />;
-    const formattedDate = new Date(item.Lost_Date || item.Reported_Date || new Date()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const badgeColor = item.Item_status === "lost" ? "bg-red-600" : "bg-[#1e3a5f]";
+    const formattedDate = new Date(item.Lost_Date || item.Reported_Date || new Date()).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
 
     return (
         <div
-            className="bg-gray-700 rounded-xl border border-slate-700 overflow-hidden shadow-lg hover:shadow-blue-500/30 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+            className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
             onClick={() => openModal(item)}
         >
-            <div className="relative">
-                <div className="w-full h-48 overflow-hidden">
-                    {item.ThumbUrl ? (
+            <div className="p-6 space-y-2">
+                <div className="w-full h-40 overflow-hidden rounded-md mb-3 bg-gray-50 flex items-center justify-center">
+                    { (item.ThumbUrl || (item.images && item.images.length)) ? (
                         <img
-                            src={apiService.getUploadUrl(item.ThumbUrl)}
-                            className="object-cover w-full h-full transition-transform duration-300 hover:scale-110"
+                            src={apiService.getUploadUrl(item.ThumbUrl ? item.ThumbUrl : (item.images[0] && item.images[0].Url))}
+                            className="w-full h-full object-cover"
                             alt={item.Item_name}
                         />
                     ) : (
-                        <img
-                            src={getPlaceholderImage('Other')}
-                            className="object-cover w-full h-full transition-transform duration-300 hover:scale-110"
-                            alt={item.Item_name}
-                        />
+                        <img src={getPlaceholderImage('Other')} className="w-full h-full object-cover" alt={item.Item_name} />
                     )}
                 </div>
-                <div className={`absolute top-3 right-3 ${badgeColor} text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-md capitalize`}>
-                    {badgeIcon}
-                    {item.Item_status}
+                <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-bold text-gray-900 text-lg flex-1 leading-tight mb-1">{item.Item_name}</h3>
+                    <span className={`${badgeColor} text-white text-sm font-semibold px-3 py-1.5 rounded capitalize flex-shrink-0`}>
+                        {item.Item_status}
+                    </span>
                 </div>
-                <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full font-medium">
-                    {formattedDate}
-                </div>
-            </div>
-            <div className="p-4 space-y-3">
-                <h3 className="font-bold text-white text-lg line-clamp-1">{item.Item_name}</h3>
-                <p className="text-gray-300 text-sm line-clamp-2">{item.Item_description}</p>
-                <div className="flex items-center justify-between pt-2 border-t border-slate-700/50">
-                    <div className="flex items-center gap-2 text-blue-400">
-                        <MapPin className="w-4 h-4" />
-                        <span className="text-sm">{item.PossibleLocation || item.Location || 'Unknown'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-purple-400">
-                        <Tag className="w-4 h-4" />
-                        <span className="text-sm">Item</span>
-                    </div>
+                <p className="text-gray-600 text-base leading-relaxed line-clamp-2">{item.Item_description}</p>
+                <div className="space-y-2 text-sm text-gray-500 pt-2">
+                    <div><span className=" font-bold text-gray-900">Category:</span> <span className="text-gray-600">{item.Item_category || 'Item'}</span></div>
+                    <div><span className=" font-bold text-gray-900">Location:</span> <span className="text-gray-600">{item.PossibleLocation || item.Location || 'Unknown'}</span></div>
+                    <div><span className="font-bold text-gray-900">Date:</span> <span className="text-gray-600">{formattedDate}</span></div>
                 </div>
             </div>
         </div>
     );
 };
 
-const ItemGrid = ({ items, openModal, totalCount }) => (
-    <div className="flex-1">
-        <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-black">All Items</h2>
-            <div className="flex items-center font-bold gap-2 text-sm text-gray-900">
-                <span className="font-bold text-blue-900">{totalCount}</span> item(s) reported
+const ItemGrid = ({ items, openModal }) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {items.length > 0 ? (
+            items.map(item => (
+                <ItemCard key={item.ItemID} item={item} openModal={openModal} />
+            ))
+        ) : (
+            <div className="col-span-full text-center py-12 bg-white rounded-lg border border-gray-200">
+                <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">No items match your criteria</h3>
+                <p className="text-gray-500">Try removing some filters or broadening your search term.</p>
             </div>
-        </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 bg-gray-100 border border-black shadow-lg  p-6 rounded-xl">
-            {items.length > 0 ? (
-                items.map(item => (
-                    <ItemCard key={item.ItemID} item={item} openModal={openModal} />
-                ))
-            ) : (
-                <div className="col-span-full text-center py-12 bg-slate-800 rounded-xl border border-slate-700">
-                    <Search className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-500 mb-2">No items match your criteria</h3>
-                    <p className="text-gray-500">Try removing some filters or broadening your search term.</p>
-                </div>
-            )}
-        </div>
+        )}
     </div>
 );
 
-const RightSidebar = ({ lostCount, foundCount, recentItems, openReportModal }) => (
-    <aside className="bg-gray-900 p-6 border-l border-gray-700 overflow-y-auto max-sm:order-1">
-        <div className="text-center mb-8">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg ring-4 ring-blue-500/20">
-                <Search className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="font-bold text-xl text-white mb-2">Loc8r</h3>
-            <p className="text-sm text-gray-300">Real-Time Overview</p>
-        </div>
-
-        <div className=" mb-8 flex flex-row gap-7 max-sm:flex-col ">
-            <div className="flex-1 bg-gradient-to-br from-red-500/20 to-red-600/30 border border-red-400/40 rounded-xl p-4 text-center shadow-lg hover:shadow-red-500/25 transition-shadow">
-                <div className="text-3xl font-bold text-red-400">{lostCount}</div>
-                <div className="text-sm text-red-300 font-medium ">Lost Items </div>
-            </div>
-            <div className="flex-1 bg-gradient-to-br from-green-500/20 to-green-600/30 border border-green-400/40 rounded-xl p-4 text-center shadow-lg hover:shadow-green-500/25 transition-shadow">
-                <div className="text-3xl font-bold text-green-400">{foundCount}</div>
-                <div className="text-sm text-green-300 font-medium ">Found Items</div>
-            </div>
-        </div>
-
-        <button
-            onClick={() => openReportModal('found')}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 font-semibold transform hover:scale-[1.02] shadow-lg hover:shadow-blue-500/25"
-        >
-            <Plus className="w-5 h-5" />
-            Report Item
-        </button>
-
-        <div className="mt-8">
-            <h4 className="font-semibold text-white text-sm uppercase tracking-wide mb-3 flex items-center gap-2">
-                <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full"></div>
-                Recent Activity
-            </h4>
-            <div className="space-y-4 text-sm">
-                {recentItems.map(item => (
-                    <div key={item.ItemID} className="flex items-start gap-3 p-3 bg-gray-800 rounded-lg border border-gray-700 shadow-sm hover:shadow-md hover:bg-gray-750 transition-all">
-                        <span className={`${item.Item_status === 'lost' ? 'text-red-400' : 'text-green-400'} pt-1`}>
-                            {item.Item_status === 'lost' ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-                        </span>
-                        <div>
-                            <p className="text-white font-medium line-clamp-1">{item.Item_name}</p>
-                            <p className="text-gray-400 text-xs capitalize">{item.Item_status} in {item.PossibleLocation || item.Location || 'Unknown'}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    </aside>
-);
 
 const ItemModal = ({ item, onClose, onOpenClaim }) => {
     if (!item) return null;
@@ -458,6 +386,7 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
     const [selectedLocation, setSelectedLocation] = useState(null);
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // State for modals
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -518,7 +447,7 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
     // Derived Counts
     const lostCount = useMemo(() => filteredItems.filter(i => i.Item_status === 'lost').length, [filteredItems]);
     const foundCount = useMemo(() => filteredItems.filter(i => i.Item_status === 'found').length, [filteredItems]);
-    const recentItems = useMemo(() => filteredItems.slice(0, 5), [filteredItems]);
+    const totalReportedCount = useMemo(() => lostCount + foundCount, [lostCount, foundCount]);
 
     // Handlers
     const toggleFilter = useCallback((key, value, setter) => {
@@ -608,109 +537,150 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
     }
 
     return (
-        <div className="min-h-screen bg-white text-black font-sans">
-            <div className="grid grid-cols-[4rem_1fr_20rem] h-screen max-lg:grid-cols-[1fr_20rem] max-sm:grid-cols-1">
-                <Sidebar onLogout={handleLogout} />
-                {/* Main Content */}
-                <main className="p-6 flex flex-col gap-6 overflow-y-auto max-sm:order-2 bg-white">
-                    
-                    {/* Search Bar & Report Button */}
-                    <div className="flex flex-col sm:flex-row justify-between items-center rounded-xl p-4 bg-gray-800 border border-gray-300 shadow-lg gap-4 sticky top-0 z-10">
-                        <div className="flex items-center gap-3 flex-1 w-full max-w-full">
-                            <div className="relative flex-1">
-                                <Search className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Search for lost or found items..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 bg-gray-100 border border-gray-300 rounded-lg outline-none text-black placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                                />
-                            </div>
-                        </div>
-                        <button 
-                            onClick={() => openReportModal('lost')}
-                            className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
-                        >
-                            <AlertTriangle className="w-5 h-5 inline-block mr-2" />Report Lost Item
-                        </button>
-                    </div>
-
-                    {/* Filters */}
-                    <div className="bg-gray-100 rounded-xl p-6 border border-black shadow-lg">
-                        <div className="space-y-6">
-                            <div className="space-y-3">
-                                <h4 className="flex items-center gap-2 text-lg font-bold text-purple-700"><List /> Status</h4>
-                                <div className="flex flex-wrap gap-3">
-                                    {STATUSES.map(({ label, value }) => (
-                                        <FilterButton 
-                                            key={value}
-                                            label={label}
-                                            value={value}
-                                            isSelected={selectedStatus === value}
-                                            onClick={() => toggleFilter('status', value, setSelectedStatus)}
-                                            activeColor={value === 'lost' ? 'bg-red-600' : 'bg-green-600'}
-                                            hoverColor={value === 'lost' ? 'hover:border-red-500/50' : 'hover:border-green-500/50'}
-                                            shadowColor={value === 'lost' ? 'hover:shadow-red-500/20' : 'hover:shadow-green-500/20'}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                            {/* Category Filter */}
-                            <div className="space-y-3">
-                                <h4 className="flex items-center gap-2 text-lg font-bold text-blue-700"><Tag /> Category</h4>
-                                <div className="flex flex-wrap gap-3">
-                                    {CATEGORIES.map(cat => (
-                                        <FilterButton
-                                            key={cat}
-                                            label={cat}
-                                            value={cat}
-                                            isSelected={selectedCategory === cat}
-                                            onClick={() => toggleFilter('category', cat, setSelectedCategory)}
-                                            activeColor={'bg-purple-600'}
-                                            hoverColor={'hover:border-purple-500/50'}
-                                            shadowColor={'hover:shadow-purple-500/20'}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Location Filter */}
-                            <div className="space-y-3">
-                                <h4 className="flex items-center gap-2 text-lg font-bold text-green-600"><MapPin /> Location</h4>
-                                <div className="flex flex-wrap gap-3">
-                                    {LOCATIONS.map(loc => (
-                                        <FilterButton
-                                            key={loc}
-                                            label={loc}
-                                            value={loc}
-                                            isSelected={selectedLocation === loc}
-                                            onClick={() => toggleFilter('location', loc, setSelectedLocation)}
-                                            activeColor={'bg-blue-600'}
-                                            hoverColor={'hover:border-blue-500/50'}
-                                            shadowColor={'hover:shadow-blue-500/20'}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Item Grid */}
-                    <ItemGrid 
-                        items={filteredItems} 
-                        openModal={openItemDetailModal}
-                        totalCount={filteredItems.length}
-                    />
-                </main>
-
-                {/* Right Sidebar */}
-                <RightSidebar 
-                    lostCount={lostCount} 
-                    foundCount={foundCount} 
-                    recentItems={recentItems}
+        <div className="min-h-screen bg-gray-100 font-sans">
+            <div className="flex h-screen">
+                <Sidebar 
+                    onLogout={handleLogout} 
+                    isOpen={sidebarOpen}
+                    onClose={() => setSidebarOpen(false)}
                     openReportModal={openReportModal}
                 />
+                
+                {/* Main Content */}
+                <main 
+                    className={`flex-1 overflow-y-auto bg-slate-100 transition-opacity duration-300 ${sidebarOpen ? 'opacity-50' : 'opacity-100'}`}
+                    onClick={() => sidebarOpen && setSidebarOpen(false)}
+                >
+                    <div className="max-w-7xl mx-auto px-8 py-6 space-y-6" onClick={(e) => e.stopPropagation()}>
+                        {/* Header with Dashboard title and sidebar toggle */}
+                        <div className="flex items-center gap-3 mb-6">
+                            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+                                <button
+                                    onClick={() => setSidebarOpen(true)}
+                                    className="p-2 rounded-lg hover:bg-gray-200 transition-colors"
+                                    aria-label="Open sidebar"
+                                >
+                                    <LayoutGrid className="w-8 h-8 text-gray-700" />
+                                </button>
+                                Dashboard
+                            </h1>
+                        </div>
+
+                        {/* Summary Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl">
+                            <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
+                                <div className="text-5xl font-bold text-red-600 mb-2">{lostCount}</div>
+                                <div className="text-base text-gray-600 font-medium">Lost Items</div>
+                            </div>
+                            <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
+                                <div className="text-5xl font-bold text-[#1e3a5f] mb-2">{foundCount}</div>
+                                <div className="text-base text-gray-600 font-medium">Found Items</div>
+                            </div>
+                            <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
+                                <div className="text-5xl font-bold text-green-600 mb-2">{totalReportedCount}</div>
+                                <div className="text-base text-gray-600 font-medium">Items Reported</div>
+                            </div>
+                        </div>
+
+                        {/* Search Bar */}
+                        <div className="max-w-6xl">
+                            <div className="flex items-center gap-3">
+                                <div className="relative flex-1 max-w-7xl">
+                                    <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search items..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg outline-none text-gray-900 placeholder-gray-400 focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20 transition-all shadow-sm"
+                                    />
+                                </div>
+
+                                <div className="flex-shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={() => openReportModal()}
+                                        className="px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium"
+                                        aria-label="Report Item"
+                                    >
+                                        Report Item
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Filters */}
+                        <div className="max-w-6xl space-y-4">
+                            <div className="flex flex-wrap items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-base font-medium  text-gray-700">Status:</span>
+                                    <div className="flex gap-2">
+                                        <FilterButton 
+                                            label="All"
+                                            value="all"
+                                            isSelected={!selectedStatus}
+                                            onClick={() => setSelectedStatus(null)}
+                                        />
+                                        <FilterButton 
+                                            label="Lost"
+                                            value="lost"
+                                            isSelected={selectedStatus === 'lost'}
+                                            onClick={() => toggleFilter('status', 'lost', setSelectedStatus)}
+                                        />
+                                        <FilterButton 
+                                            label="Found"
+                                            value="found"
+                                            isSelected={selectedStatus === 'found'}
+                                            onClick={() => toggleFilter('status', 'found', setSelectedStatus)}
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                    <span className="text-base font-medium text-gray-700">Category:</span>
+                                    <div className="relative">
+                                        <select
+                                            value={selectedCategory || ''}
+                                            onChange={(e) => setSelectedCategory(e.target.value || null)}
+                                            className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-md font-semibold text-gray-700 focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20"
+                                        >
+                                            <option value="">All Categories</option>
+                                            {CATEGORIES.map(cat => (
+                                                <option key={cat} value={cat}>{cat}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                    <span className="text-base font-medium text-gray-700">Location:</span>
+                                    <div className="relative">
+                                        <select
+                                            value={selectedLocation || ''}
+                                            onChange={(e) => setSelectedLocation(e.target.value || null)}
+                                            className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 font-semibold text-md text-gray-700 focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20"
+                                        >
+                                            <option value="">All Locations</option>
+                                            {LOCATIONS.map(loc => (
+                                                <option key={loc} value={loc}>{loc}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Item Grid */}
+                        <div className="max-w-7xl">
+                            <ItemGrid 
+                                items={filteredItems} 
+                                openModal={openItemDetailModal}
+                            />
+                        </div>
+                    </div>
+                </main>
             </div>
 
             {/* Modals */}

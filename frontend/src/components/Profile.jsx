@@ -51,16 +51,16 @@ const Profile = ({ setIsAuthenticated }) => {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-      <div className="grid grid-cols-[4rem_1fr] h-screen">
+      <div className="flex h-auto md:h-screen">
         <Sidebar onLogout={handleLogout} />
 
-        <main className="p-6 overflow-y-auto">
-          <section className="min-h-screen bg-black px-6 md:px-16 py-20">
+        <main className="flex-1 p-6 overflow-y-auto bg-black min-h-screen">
+          <section className="min-h-screen bg-black px-6 md:px-16 py-12">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1 }}
-              className="max-w-6xl mx-auto bg-gray-300 rounded-3xl shadow-2xl p-10 grid md:grid-cols-2 gap-10"
+              className="w-full max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl p-8 grid md:grid-cols-2 gap-8"
             >
               {/* Left Column: Profile Info */}
               <motion.div
