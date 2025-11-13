@@ -1,7 +1,7 @@
 // components/ReportFormModal.jsx
 import React, { useState, useEffect } from 'react';
 import { ALL_CATEGORIES, LOCATIONS } from '../data';
-import { getPlaceholderImage } from '../utils';
+import apiService from '../services/api';
 
 const formDefault = {
   itemType: '',
@@ -40,7 +40,7 @@ const ReportFormModal = ({ isOpen, onClose, onSubmit, presetType }) => {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files && e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         alert("Image size must be less than 5MB");
@@ -54,12 +54,32 @@ const ReportFormModal = ({ isOpen, onClose, onSubmit, presetType }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // onSubmit({ ...formData, imageFile });
-    const imageUrl = imagePreviewUrl 
-  ? imagePreviewUrl 
-  : getPlaceholderImage(formData.category || 'Other');
+    // Build payload compatible with apiService.createItem
+    const payload = {
+      ...formData,
+      // backend expects files under `images` array
+      images: imageFile ? [imageFile] : []
+    };
 
-onSubmit({ ...formData, image: imageUrl });
+    // If parent provides onSubmit, pass the payload so parent can handle upload
+    if (typeof onSubmit === 'function') {
+      onSubmit(payload);
+      return;
+    }
+
+    // Otherwise, handle submission here using apiService (frontend-only change)
+    (async () => {
+      try {
+        await apiService.createItem(payload);
+        alert('✅ Item reported successfully!');
+        onClose();
+        // reload to refresh list (parent may handle this better)
+        window.location.reload();
+      } catch (err) {
+        console.error('Failed to submit item', err);
+        alert(err.message || 'Failed to submit item');
+      }
+    })();
 
   };
 
@@ -215,7 +235,7 @@ onSubmit({ ...formData, image: imageUrl });
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-400">Item Image</label>
               <div className="border-2 border-dashed border-palette rounded-lg p-6 text-center hover:border-blue-500 transition-colors image-upload-area">
-                <input type="file" name="image" accept="image/*" className="hidden" id="imageInput" onChange={handleImageChange} />
+                <input type="file" name="images" accept="image/*" className="hidden" id="imageInput" onChange={handleImageChange} />
                 <label htmlFor="imageInput" className="cursor-pointer">
                   <i className="bx bx-image-add text-4xl text-gray-400 mb-2"></i>
                   <p className="text-gray-400">Click to upload image or drag and drop</p>

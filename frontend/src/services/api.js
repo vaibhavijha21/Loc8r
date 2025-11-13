@@ -52,14 +52,28 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
+      
+      // Handle network errors (no response received)
+      if (!response) {
+        throw new Error('Network error: Unable to connect to server. Please ensure the backend is running on http://localhost:4000');
+      }
+
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Request failed');
+        throw new Error(data.message || data.error || 'Request failed');
       }
 
       return data;
     } catch (error) {
+      // Handle fetch network errors (backend not running, CORS, etc.)
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        const networkError = new Error('Network error: Unable to connect to server. Please ensure the backend is running on http://localhost:4000');
+        console.error('API request failed:', networkError);
+        throw networkError;
+      }
+      
+      // Re-throw other errors (including API errors)
       console.error('API request failed:', error);
       throw error;
     }
