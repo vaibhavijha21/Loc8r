@@ -199,7 +199,7 @@ const RightSidebar = ({ lostCount, foundCount, recentItems, openReportModal }) =
     </aside>
 );
 
-const ItemModal = ({ item, onClose }) => {
+const ItemModal = ({ item, onClose, onOpenClaim }) => {
     if (!item) return null;
 
     const statusColor = item.Item_status === "lost" ? "text-red-400 bg-red-500/10" : "text-green-400 bg-green-500/10";
@@ -246,6 +246,16 @@ const ItemModal = ({ item, onClose }) => {
                             <label className="text-sm font-medium text-gray-400 flex items-center gap-2"><List className="w-4 h-4"/> Detailed Description</label>
                             <p className="text-white bg-slate-700 p-4 rounded-lg border border-slate-600 text-sm">{item.Item_description}</p>
                         </div>
+                        {item.Item_status === 'found' && item.FoundID && (
+                            <div className="pt-4 border-t border-slate-700">
+                                <button
+                                    onClick={() => onOpenClaim(item)}
+                                    className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-colors duration-200 font-semibold"
+                                >
+                                    Claim this item
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -451,7 +461,10 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
 
     // State for modals
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [claimTarget, setClaimTarget] = useState(null);
+    const [claimMessage, setClaimMessage] = useState('');
 
     // Load items from backend
     useEffect(() => {
@@ -517,6 +530,16 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
     }, []);
 
     const closeReportModal = useCallback(() => setIsReportModalOpen(false), []);
+    const openClaimModal = useCallback((item) => {
+        setClaimTarget(item);
+        setClaimMessage('');
+        setIsClaimModalOpen(true);
+    }, []);
+    const closeClaimModal = useCallback(() => {
+        setIsClaimModalOpen(false);
+        setClaimTarget(null);
+        setClaimMessage('');
+    }, []);
     const openItemDetailModal = useCallback(async (item) => {
         try {
             // fetch full details (images, claims, lost/found info)
@@ -528,6 +551,7 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
                 Reported_Date: data.found ? data.found.Reported_Date : data.item.Reported_Date,
                 PossibleLocation: data.lost ? data.lost.PossibleLocation : data.item.PossibleLocation,
                 Location: data.found ? data.found.Location : data.item.Location,
+                FoundID: data.found ? data.found.FoundID : (item.FoundID || null),
                 images: data.images || [],
                 claims: data.claims || []
             };
@@ -539,6 +563,18 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
         }
     }, []);
     const closeItemDetailModal = useCallback(() => setSelectedItem(null), []);
+
+    const submitClaim = useCallback(async () => {
+        if (!claimTarget || !claimTarget.FoundID) return;
+        try {
+            await apiService.submitClaim(claimTarget.FoundID, { message: claimMessage.trim() });
+            alert('✅ Claim submitted to admin.');
+            closeClaimModal();
+        } catch (err) {
+            console.error('Failed to submit claim', err);
+            alert(err.message || 'Failed to submit claim');
+        }
+    }, [claimTarget, claimMessage, closeClaimModal]);
     
     const handleLogout = useCallback(() => {
         apiService.clearToken();
@@ -553,11 +589,12 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
             if (e.key === 'Escape') {
                 if (selectedItem) closeItemDetailModal();
                 if (isReportModalOpen) closeReportModal();
+                if (isClaimModalOpen) closeClaimModal();
             }
         };
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [selectedItem, isReportModalOpen, closeItemDetailModal, closeReportModal]);
+    }, [selectedItem, isReportModalOpen, isClaimModalOpen, closeItemDetailModal, closeReportModal, closeClaimModal]);
 
     if (loading) {
         return (
@@ -679,13 +716,51 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
             {/* Modals */}
             <ItemModal 
                 item={selectedItem} 
-                onClose={closeItemDetailModal} 
+                onClose={closeItemDetailModal}
+                onOpenClaim={openClaimModal}
             />
             <ReportFormModal 
                 isOpen={isReportModalOpen} 
                 onClose={closeReportModal}
                 addItem={() => {}} // This will be handled by the form submission
             />
+            {isClaimModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
+                    <div className="bg-slate-800 rounded-xl max-w-lg w-full border border-slate-700 shadow-2xl">
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-xl font-bold text-white">Claim Item</h3>
+                                <button onClick={closeClaimModal} className="text-gray-400 hover:text-white">
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                <p className="text-gray-300">
+                                    You are claiming: <span className="font-semibold text-white">{claimTarget?.Item_name}</span>
+                                </p>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-400">Message to admin (optionally include a link as proof)</label>
+                                    <textarea
+                                        value={claimMessage}
+                                        onChange={(e) => setClaimMessage(e.target.value)}
+                                        rows="4"
+                                        className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none outline-none"
+                                        placeholder="Describe how you can verify ownership (unique marks, serial no., or add a link to proof)."
+                                    ></textarea>
+                                </div>
+                                <div className="flex gap-3 pt-2">
+                                    <button onClick={closeClaimModal} className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg">
+                                        Cancel
+                                    </button>
+                                    <button onClick={submitClaim} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg">
+                                        Submit Claim
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
