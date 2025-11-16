@@ -369,6 +369,7 @@ const AdminProfile = () => {
                   <tr>
                     <th className="p-2 text-left">Item Name</th>
                     <th className="p-2 text-left">Claimer</th>
+                    <th className="p-2 text-left">Message</th>
                     <th className="p-2 text-left">Status</th>
                     <th className="p-2 text-left">Actions</th>
                   </tr>
@@ -378,6 +379,11 @@ const AdminProfile = () => {
                     <tr key={i} className="border-t border-gray-300">
                       <td className="p-2">{claim.Item_name}</td>
                       <td className="p-2">{claim.claimer_name}</td>
+                      <td className="p-2 max-w-md">
+                        <div className="text-gray-700 line-clamp-2" title={claim.Message || claim.message || ''}>
+                          {claim.Message || claim.message || '-'}
+                        </div>
+                      </td>
                       <td className="p-2">{claim.Claim_status}</td>
                       <td className="p-2 space-x-2">
                         {claim.Claim_status !== 'Approved' && (

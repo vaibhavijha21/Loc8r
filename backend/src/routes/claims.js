@@ -14,7 +14,20 @@ router.post('/:foundId', authMiddleware, async (req, res) => {
     const [fRows] = await pool.query('SELECT * FROM FoundItem WHERE FoundID=?', [foundId]);
     if (!fRows.length) return res.status(404).json({ message: 'Found item not found' });
 
-    await pool.query('INSERT INTO claim (UserID, FoundID, Claim_date, Claim_status) VALUES (?, ?, NOW(), ?)', [userId, foundId, 'Pending']);
+    // Try to persist message if column exists; fallback to insert without message
+    try {
+      await pool.query(
+        'INSERT INTO claim (UserID, FoundID, Claim_date, Claim_status, Message) VALUES (?, ?, NOW(), ?, ?)',
+        [userId, foundId, 'Pending', message || null]
+      );
+    } catch (e) {
+      // If Message column does not exist, insert without it
+      await pool.query(
+        'INSERT INTO claim (UserID, FoundID, Claim_date, Claim_status) VALUES (?, ?, NOW(), ?)',
+        [userId, foundId, 'Pending']
+      );
+    }
+
     res.json({ message: 'Claim submitted' });
   } catch (err) {
     console.error(err);

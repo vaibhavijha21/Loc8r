@@ -130,6 +130,14 @@ class ApiService {
     return this.request('/admin/items');
   }
 
+  // Submit a claim for a found item (user)
+  async submitClaim(foundId, { message }) {
+    return this.request(`/claims/${encodeURIComponent(foundId)}`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
+  }
+
   async updateClaimStatus(claimId, status) {
     return this.request(`/admin/claims/${claimId}/status`, {
       method: 'PUT',
