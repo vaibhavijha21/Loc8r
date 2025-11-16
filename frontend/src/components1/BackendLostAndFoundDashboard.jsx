@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Mail, MapPin, Tag, Calendar, X, Search, Plus, List, AlertTriangle, CheckCircle, Smartphone, Map, LayoutGrid, ChevronDown } from 'lucide-react';
 import Sidebar from './Sidebar';
 import apiService from '../services/api';
+import { Menu } from "lucide-react";
+
 
 // Constants
 const CATEGORIES = ["Bags", "Charger", "Bottle", "ID Card", "Phone", "Keys", "Electronics", "Personal", "Other"];
@@ -136,12 +138,12 @@ const ItemModal = ({ item, onClose }) => {
     const IconComponent = statusIcon;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
-            <div className="bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-700 shadow-2xl transition-all duration-300">
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
+            <div className="bg-slate-100 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-700 shadow-2xl transition-all duration-300">
                 <div className="p-6">
                     <div className="flex justify-between items-start mb-4 border-b border-slate-700 pb-4">
-                        <h3 className="text-3xl font-extrabold text-white">{item.Item_name}</h3>
-                        <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl transition-colors">
+                        <h3 className="text-3xl font-extrabold text-gray-700">{item.Item_name}</h3>
+                        <button onClick={onClose} className="text-gray-700 hover:text-gray-900 text-2xl transition-colors">
                             <X className="w-7 h-7" />
                         </button>
                     </div>
@@ -165,14 +167,14 @@ const ItemModal = ({ item, onClose }) => {
                         
                         <div className="grid grid-cols-2 gap-4 text-sm font-medium">
                             <DetailPill label="Status" value={item.Item_status} color={statusColor} Icon={IconComponent} />
-                            <DetailPill label="Category" value="Item" color="text-purple-400 bg-purple-500/10" Icon={Tag} />
-                            <DetailPill label="Location" value={item.PossibleLocation || item.Location || 'Unknown'} color="text-green-400 bg-green-500/10" Icon={MapPin} />
-                            <DetailPill label="Date" value={formattedDate} color="text-blue-400 bg-blue-500/10" Icon={Calendar} />
+                            <DetailPill label="Category" value="Item" color="text-purple-700 bg-purple-700/10" Icon={Tag} />
+                            <DetailPill label="Location" value={item.PossibleLocation || item.Location || 'Unknown'} color="text-green-700 bg-green-700/10" Icon={MapPin} />
+                            <DetailPill label="Date" value={formattedDate} color="text-blue-700 bg-blue-700/10" Icon={Calendar} />
                         </div>
                         
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 flex items-center gap-2"><List className="w-4 h-4"/> Detailed Description</label>
-                            <p className="text-white bg-slate-700 p-4 rounded-lg border border-slate-600 text-sm">{item.Item_description}</p>
+                            <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><List className="w-4 h-4"/> Detailed Description</label>
+                            <p className="text-gray-700 bg-slate-100 p-4 rounded-lg border border-slate-600 text-sm font-semibold">{item.Item_description}</p>
                         </div>
                     </div>
                 </div>
@@ -183,10 +185,10 @@ const ItemModal = ({ item, onClose }) => {
 
 const DetailPill = ({ label, value, color, Icon }) => (
     <div className="space-y-2">
-        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">{label}</label>
+        <label className="text-xs font-semibold text-gray-900 uppercase tracking-wider block">{label}</label>
         <div className={`flex items-center gap-2 ${color} p-3 rounded-lg border border-slate-700/50`}>
             <Icon className="w-4 h-4" />
-            <span className="text-white capitalize">{value}</span>
+            <span className="text-gray-700 capitalize">{value}</span>
         </div>
     </div>
 );
@@ -204,27 +206,58 @@ const ReportFormModal = ({ isOpen, onClose, addItem }) => {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [imagePreviewUrl, setImagePreviewUrl] = useState('');
 
     useEffect(() => {
+        const defaults = {
+            Item_name: '',
+            Item_description: '',
+            Item_status: '',
+            Lost_Date: new Date().toISOString().split('T')[0],
+            PossibleLocation: '',
+            Reported_Date: new Date().toISOString().split('T')[0],
+            Location: '',
+            images: []
+        };
+
         if (!isOpen) {
-            setFormData({
-                Item_name: '', 
-                Item_description: '', 
-                Item_status: '', 
-                Lost_Date: new Date().toISOString().split('T')[0], 
-                PossibleLocation: '', 
-                Reported_Date: new Date().toISOString().split('T')[0], 
-                Location: '',
-                images: []
-            });
+            setFormData(defaults);
             setError('');
+            setImagePreviewUrl('');
+            return;
+        }
+
+        // Modal opened: try to prefill contact info from localStorage user
+        try {
+            const userJson = localStorage.getItem('user');
+            let contactEmail = '';
+            let phoneNumber = '';
+            if (userJson) {
+                const u = JSON.parse(userJson);
+                contactEmail = u.Email || u.email || u.Contact || u.contact || '';
+                phoneNumber = u.Phone || u.phone || u.ContactNumber || u.contact_number || '';
+            }
+            setFormData(prev => ({ ...defaults, Contact_Email: contactEmail, Phone_Number: phoneNumber }));
+            setError('');
+            setImagePreviewUrl('');
+        } catch (err) {
+            console.error('Failed to prefill contact info:', err);
+            setFormData(defaults);
+            setError('');
+            setImagePreviewUrl('');
         }
     }, [isOpen]);
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
         if (files) {
-            setFormData(prev => ({ ...prev, images: Array.from(files) }));
+            const fileArray = Array.from(files);
+            setFormData(prev => ({ ...prev, images: fileArray }));
+            // Create preview URL for the first image
+            if (fileArray.length > 0) {
+                const previewUrl = URL.createObjectURL(fileArray[0]);
+                setImagePreviewUrl(previewUrl);
+            }
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
@@ -260,15 +293,15 @@ const ReportFormModal = ({ isOpen, onClose, addItem }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
-            <div className="bg-slate-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-slate-700 shadow-2xl">
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
+            <div className="bg-slate-100 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-slate-700 shadow-2xl">
                 <div className="p-6">
                     <div className="flex justify-between items-start mb-6 border-b border-slate-700 pb-3">
                         <div>
-                            <h3 className="text-2xl font-bold text-white mb-1">Report Item</h3>
-                            <p className="text-gray-400 text-sm">Enter details for your item below.</p>
+                            <h3 className="text-2xl font-bold text-gray-700 mb-1">Report Item</h3>
+                            <p className="text-gray-700 text-sm">Enter details for your item below.</p>
                         </div>
-                        <button type="button" onClick={onClose} className="text-gray-400 hover:text-white text-2xl transition-colors">
+                        <button type="button" onClick={onClose} className="text-gray-500 hover:text-gray-900 text-2xl transition-colors">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
@@ -283,15 +316,15 @@ const ReportFormModal = ({ isOpen, onClose, addItem }) => {
 
                         {/* Item Type Selection */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400">Item Type *</label>
-                            <div className="flex gap-4 p-3 bg-slate-700 rounded-lg border border-slate-600">
+                            <label className="text-sm font-medium text-gray-700">Item Type *</label>
+                            <div className="flex gap-4 p-3 bg-slate-100 rounded-lg border border-slate-900">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="Item_status" value="lost" checked={formData.Item_status === 'lost'} onChange={handleChange} className="text-red-600 focus:ring-red-500" required />
-                                    <span className="text-white">Lost Item</span>
+                                    <span className="text-gray-700">Lost Item</span>
                                 </label>
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input type="radio" name="Item_status" value="found" checked={formData.Item_status === 'found'} onChange={handleChange} className="text-green-600 focus:ring-green-500" required />
-                                    <span className="text-white">Found Item</span>
+                                    <span className="text-gray-700">Found Item</span>
                                 </label>
                             </div>
                         </div>
@@ -309,23 +342,67 @@ const ReportFormModal = ({ isOpen, onClose, addItem }) => {
 
                         {/* Image Upload */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400">Item Images (Optional)</label>
-                            <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                                <input type="file" name="images" accept="image/*" multiple className="hidden" id="imageInput" onChange={handleChange} />
-                                <label htmlFor="imageInput" className="cursor-pointer flex flex-col items-center">
-                                    <Plus className="w-8 h-8 text-gray-400 mb-2" />
-                                    <p className="text-gray-400">Click to upload images or drag and drop</p>
-                                    <p className="text-sm text-gray-500 mt-1">PNG, JPG up to 5MB each</p>
-                                </label>
+                            <label className="text-sm font-semibold text-gray-700">Item Images (Optional)</label>
+                            <div style={{
+                                border: '2px dashed #0f172a',
+                                borderRadius: '0.5rem',
+                                padding: '1.5rem',
+                                textAlign: 'center',
+                                minHeight: '250px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'border-color 0.3s',
+                                cursor: 'pointer'
+                            }} className="hover:border-blue-500">
+                                <input type="file" name="images" accept="image/*" multiple style={{display: 'none'}} id="imageInput" onChange={handleChange} />
+                                {imagePreviewUrl ? (
+                                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', width: '100%'}}>
+                                        <img 
+                                            src={imagePreviewUrl} 
+                                            style={{
+                                                maxHeight: '200px',
+                                                maxWidth: '280px',
+                                                width: 'auto',
+                                                objectFit: 'contain',
+                                                borderRadius: '0.5rem',
+                                                border: '1px solid #64748b',
+                                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                                            }} 
+                                            alt="Image Preview" 
+                                        />
+                                        <label htmlFor="imageInput" style={{cursor: 'pointer', fontSize: '0.875rem', color: '#3b82f6', fontWeight: 500}}>
+                                            ✎ Click to change image
+                                        </label>
+                                    </div>
+                                ) : (
+                                    <label htmlFor="imageInput" style={{cursor: 'pointer', width: '100%'}}>
+                                        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                                            <div style={{fontSize: '2.5rem', marginBottom: '1rem'}}>📷</div>
+                                            <p style={{color: '#9ca3af', fontWeight: 500}}>Click to upload images or drag and drop</p>
+                                            <p style={{fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem'}}>PNG, JPG up to 5MB each</p>
+                                        </div>
+                                    </label>
+                                )}
                             </div>
                         </div>
 
+                        {/* Contact Information */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormInput label="Contact Email" name="Contact_Email" type="email" placeholder="your.email@example.com" value={formData.Contact_Email || ''} onChange={handleChange} />
+                            <FormInput label="Phone Number" name="Phone_Number" placeholder="+1 (555) 123-4567" value={formData.Phone_Number || ''} onChange={handleChange} />
+                        </div>
+
+                        {/* Additional Details */}
+                        <FormTextarea label="Additional Details" name="Additional_Details" placeholder="Any other relevant information..." value={formData.Additional_Details || ''} onChange={handleChange} />
+
                         {/* Form Actions */}
                         <div className="flex gap-4 pt-6 border-t border-slate-700">
-                            <button type="button" onClick={onClose} className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg transition-colors duration-200 font-medium">
+                            <button type="button" onClick={onClose} className="flex-1 bg-red-500 hover:bg-red-700 text-white py-3 rounded-lg transition-colors duration-200 font-medium">
                                 Cancel
                             </button>
-                            <button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors duration-200 font-semibold disabled:opacity-50">
+                            <button type="submit" disabled={loading} className="flex-1 bg-blue-800 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors duration-200 font-semibold disabled:opacity-50">
                                 {loading ? 'Submitting...' : 'Submit Report'}
                             </button>
                         </div>
@@ -339,7 +416,7 @@ const ReportFormModal = ({ isOpen, onClose, addItem }) => {
 // Simple reusable form components
 const FormInput = ({ label, name, type = 'text', placeholder = '', value, onChange, required = false }) => (
     <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-400">{label}</label>
+        <label className="text-sm font-medium text-gray-700">{label}</label>
         <input 
             type={type} 
             name={name} 
@@ -347,14 +424,14 @@ const FormInput = ({ label, name, type = 'text', placeholder = '', value, onChan
             value={value} 
             onChange={onChange} 
             required={required}
-            className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+            className="w-full px-4 py-3 bg-slate-100 border border-gray-900 rounded-lg text-gray-700 placeholder-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
         />
     </div>
 );
 
 const FormTextarea = ({ label, name, placeholder = '', value, onChange, required = false }) => (
     <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-400">{label}</label>
+        <label className="text-sm font-medium text-gray-700">{label}</label>
         <textarea 
             name={name} 
             placeholder={placeholder} 
@@ -362,7 +439,7 @@ const FormTextarea = ({ label, name, placeholder = '', value, onChange, required
             onChange={onChange} 
             required={required}
             rows="3" 
-            className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none outline-none"
+            className="w-full px-4 py-3 bg-slate-100 border border-slate-900 rounded-lg text-gray-700 placeholder-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none outline-none"
         ></textarea>
     </div>
 );
@@ -381,6 +458,20 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
     // State for modals
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [userName, setUserName] = useState('');
+
+    // Load user name from localStorage
+    useEffect(() => {
+        try {
+            const userJson = localStorage.getItem('user');
+            if (userJson) {
+                const user = JSON.parse(userJson);
+                setUserName(user.User_name || user.name || user.Name || '');
+            }
+        } catch (err) {
+            console.error('Failed to load user name:', err);
+        }
+    }, []);
 
     // Load items from backend
     useEffect(() => {
@@ -435,6 +526,40 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
     const lostCount = useMemo(() => filteredItems.filter(i => i.Item_status === 'lost').length, [filteredItems]);
     const foundCount = useMemo(() => filteredItems.filter(i => i.Item_status === 'found').length, [filteredItems]);
     const totalReportedCount = useMemo(() => lostCount + foundCount, [lostCount, foundCount]);
+    const [myReportsCount, setMyReportsCount] = useState(0);
+
+    // Compute current user's reports by fetching item details (falls back if user id missing)
+    useEffect(() => {
+        const computeMyReports = async () => {
+            try {
+                const userJson = localStorage.getItem('user');
+                if (!userJson) { setMyReportsCount(0); return; }
+                const userObj = JSON.parse(userJson);
+                const uid = userObj.UserID || userObj.id || userObj.UserId || userObj.userId || userObj.ID;
+                if (!uid) { setMyReportsCount(0); return; }
+
+                const checks = await Promise.allSettled(filteredItems.map(async (it) => {
+                    try {
+                        const data = await apiService.getItem(it.ItemID);
+                        const lost = data.lost;
+                        const found = data.found;
+                        return (lost && (lost.UserID == uid)) || (found && (found.UserID == uid));
+                    } catch (e) {
+                        return false;
+                    }
+                }));
+
+                const count = checks.reduce((acc, r) => acc + ((r.status === 'fulfilled' && r.value) ? 1 : 0), 0);
+                setMyReportsCount(count);
+            } catch (err) {
+                console.error('Failed to compute my reports', err);
+                setMyReportsCount(0);
+            }
+        };
+
+        if (filteredItems && filteredItems.length) computeMyReports();
+        else setMyReportsCount(0);
+    }, [filteredItems]);
 
     // Handlers
     const toggleFilter = useCallback((key, value, setter) => {
@@ -500,7 +625,7 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 font-sans">
+        <div className="min-h-screen bg-gray-100 bg-opacity-10 font-sans">
             <div className="flex h-screen">
                 <Sidebar 
                     onLogout={handleLogout} 
@@ -523,14 +648,14 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
                                     className="p-2 rounded-lg hover:bg-gray-200 transition-colors"
                                     aria-label="Open sidebar"
                                 >
-                                    <LayoutGrid className="w-8 h-8 text-gray-700" />
+                                    <Menu className="w-8 h-8 text-gray-700" />
                                 </button>
-                                Dashboard
+                                {userName ? `Loc8r: ${userName} detected \uD83D\uDD0D` : 'Dashboard'}
                             </h1>
                         </div>
 
                         {/* Summary Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 w-full max-w-7xl">
                             <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
                                 <div className="text-5xl font-bold text-red-600 mb-2">{lostCount}</div>
                                 <div className="text-base text-gray-600 font-medium">Lost Items</div>
@@ -542,6 +667,10 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
                             <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
                                 <div className="text-5xl font-bold text-green-600 mb-2">{totalReportedCount}</div>
                                 <div className="text-base text-gray-600 font-medium">Items Reported</div>
+                            </div>
+                            <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
+                                <div className="text-5xl font-bold text-indigo-600 mb-2">{myReportsCount}</div>
+                                <div className="text-base text-gray-600 font-medium">My Reports</div>
                             </div>
                         </div>
 
@@ -652,7 +781,9 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
                 onClose={closeItemDetailModal} 
             />
             <ReportFormModal 
-                isOpen={isReportModalOpen} 
+                isOpen={isReportModalOpen && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"></div>
+)} 
                 onClose={closeReportModal}
                 addItem={() => {}} // This will be handled by the form submission
             />

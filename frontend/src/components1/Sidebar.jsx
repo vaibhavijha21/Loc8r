@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import apiService from '../services/api';
-import { Home, Search, FileText, User, LogOut, X } from 'lucide-react';
+import { Home, Search, FileText, User, LogOut, X ,Mail} from 'lucide-react';
 
 const Sidebar = ({ onLogout, isOpen, onClose, openReportModal }) => {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ const Sidebar = ({ onLogout, isOpen, onClose, openReportModal }) => {
 
   const navItems = [
     { icon: Home, label: 'Home', link: '/dashboard', type: 'nav' },
-    { icon: Search, label: 'Search', link: '#', type: 'nav' },
+    { icon: Mail, label: 'Contact Admin', link: 'mailto', type: 'contact' },
     { icon: FileText, label: 'Report', link: '#', type: 'report' },
     { icon: User, label: 'Profile', link: '/profile', type: 'nav' },
   ];
@@ -77,11 +77,17 @@ const Sidebar = ({ onLogout, isOpen, onClose, openReportModal }) => {
                   if (item.type === 'report' && openReportModal) {
                     openReportModal();
                     onClose?.();
-                  } else if (item.link.startsWith('/')) {
+                  }else if (item.type === 'contact') {
+    window.open(
+      "https://mail.google.com/mail/?view=cm&fs=1&to=support@loc8r.com&su=Support%20Request&body=Hello%20Admin,",
+      "_blank"
+    );
+   } else if (item.link.startsWith('/')) {
                     navigate(item.link);
                     // Close the overlay sidebar on navigation so the target page is visible
                     onClose?.();
                   }
+                  
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
   active 

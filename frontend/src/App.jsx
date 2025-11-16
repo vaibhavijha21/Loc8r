@@ -15,7 +15,8 @@ import BackendAuthentication from "./components1/BackendAuthentication";
 import BackendLostAndFoundDashboard from "./components1/BackendLostAndFoundDashboard";
 import apiService from './services/api';
 import Profile from './components/Profile';
-import AdminProfile from './components1/AdminProfile'; // ✅ Added this import
+import AdminProfile from './components1/AdminProfile'; 
+
 
 // --- Component for the combined Home/Landing Page ---
 const LandingPage = ({ isAuth, setIsAuthenticated }) => (
@@ -113,6 +114,8 @@ function App() {
               )
             }
           />
+          
+
 
           {/* Profile Route */}
           <Route

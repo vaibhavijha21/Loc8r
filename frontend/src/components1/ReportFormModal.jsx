@@ -1,5 +1,5 @@
 // components/ReportFormModal.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ALL_CATEGORIES, LOCATIONS } from '../data';
 import apiService from '../services/api';
 
@@ -39,18 +39,22 @@ const ReportFormModal = ({ isOpen, onClose, onSubmit, presetType }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files && e.target.files[0];
+  const handleImageChange = useCallback((e) => {
+    const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         alert("Image size must be less than 5MB");
         e.target.value = "";
+        setImageFile(null);
+        setImagePreviewUrl('');
         return;
       }
+      const previewUrl = URL.createObjectURL(file);
       setImageFile(file);
-      setImagePreviewUrl(URL.createObjectURL(file));
+      setImagePreviewUrl(previewUrl);
+      console.log('Image preview set:', previewUrl);
     }
-  };
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -93,7 +97,7 @@ const ReportFormModal = ({ isOpen, onClose, onSubmit, presetType }) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0  bg-black/30 z-50 flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-[#1e293b] rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-palette">
@@ -142,7 +146,7 @@ const ReportFormModal = ({ isOpen, onClose, onSubmit, presetType }) => {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-400">Date *</label>
+                <label className="text-sm font-medium text-gray-700">Date *</label>
                 <input 
                   type="date" 
                   name="date" 
@@ -157,7 +161,7 @@ const ReportFormModal = ({ isOpen, onClose, onSubmit, presetType }) => {
             {/* Title and Category */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-400">Item Title *</label>
+                <label className="text-sm font-medium text-white">Item Title *</label>
                 <input 
                   type="text" 
                   name="title" 
@@ -219,7 +223,7 @@ const ReportFormModal = ({ isOpen, onClose, onSubmit, presetType }) => {
 
             {/* Description */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400">Description *</label>
+              <label className="text-sm font-medium text-white">Description *</label>
               <textarea 
                 name="description" 
                 value={formData.description}
@@ -227,23 +231,54 @@ const ReportFormModal = ({ isOpen, onClose, onSubmit, presetType }) => {
                 placeholder="Provide detailed description of the item, when you lost/found it, any identifying features..." 
                 required 
                 rows="3" 
-                className="w-full px-4 py-3 bg-[#0f1419] border border-palette rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none form-input"
+                className="w-full px-4 py-3 bg-[#0f1419] border border-white rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none form-input"
               ></textarea>
             </div>
 
             {/* Image Upload */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-400">Item Image</label>
-              <div className="border-2 border-dashed border-palette rounded-lg p-6 text-center hover:border-blue-500 transition-colors image-upload-area">
-                <input type="file" name="images" accept="image/*" className="hidden" id="imageInput" onChange={handleImageChange} />
-                <label htmlFor="imageInput" className="cursor-pointer">
-                  <i className="bx bx-image-add text-4xl text-gray-400 mb-2"></i>
-                  <p className="text-gray-400">Click to upload image or drag and drop</p>
-                  <p className="text-sm text-gray-500 mt-1">PNG, JPG up to 5MB</p>
-                </label>
-              </div>
-              <div id="imagePreview" className={`${imagePreviewUrl ? 'block' : 'hidden'} mt-3`}>
-                <img src={imagePreviewUrl} className="w-32 h-32 object-cover rounded-lg border border-palette" alt="Image Preview" />
+              <div style={{
+                border: '2px dashed #ffffffff',
+                borderRadius: '0.5rem',
+                padding: '1.5rem',
+                textAlign: 'center',
+                minHeight: '250px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'border-color 0.3s'
+              }} className="hover:border-blue-500 image-upload-area">
+                <input type="file" name="images" accept="image/*" style={{display: 'none'}} id="imageInput" onChange={handleImageChange} />
+                {imagePreviewUrl && imagePreviewUrl.length > 0 ? (
+                  <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', width: '100%'}}>
+                    <img 
+                      src={imagePreviewUrl} 
+                      style={{
+                        maxHeight: '200px',
+                        maxWidth: '280px',
+                        width: 'auto',
+                        objectFit: 'contain',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #64748b',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                      }} 
+                      alt="Image Preview" 
+                    />
+                    <label htmlFor="imageInput" style={{cursor: 'pointer', fontSize: '0.875rem', color: '#60a5fa', fontWeight: 500}}>
+                      ✎ Click to change image
+                    </label>
+                  </div>
+                ) : (
+                  <label htmlFor="imageInput" style={{cursor: 'pointer', width: '100%'}}>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                      <div style={{fontSize: '3.5rem', color: '#9ca3af', marginBottom: '1rem'}}>📷</div>
+                      <p style={{color: '#9ca3af', fontWeight: 500}}>Click to upload image or drag and drop</p>
+                      <p style={{fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem'}}>PNG, JPG up to 5MB</p>
+                    </div>
+                  </label>
+                )}
               </div>
             </div>
 
