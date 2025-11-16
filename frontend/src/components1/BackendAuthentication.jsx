@@ -347,11 +347,29 @@ const BackendAuthentication = ({ setIsAuthenticated }) => {
 					<div className="overlay-container">
 						<div className="overlay">
 							<div className="overlay-panel overlay-left">
+								<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] md:w-[400px] md:h-[400px]">
+      <div className="absolute inset-0 rounded-full border border-white/20"></div>
+      <div className="absolute inset-8 rounded-full border border-white/15"></div>
+      <div className="absolute inset-16 rounded-full border border-white/10"></div>
+      <div className="absolute inset-24 rounded-full border border-white/5"></div>
+      <div className="absolute inset-0 rounded-full origin-center animate-sweep bg-gradient-to-tr from-white/20 to-transparent"></div>
+    </div>
+  </div>
 								<h1 className="font-bold text-3xl py-2 mt-2">Welcome Back!</h1>
 								<p className="font-bold p-4">Login to recover. Login to reunite.</p>
 								<button className="text-white bg-blue-600 p-2 w-32 rounded-lg mb-2" onClick={handleSignInClick}>Log In</button>
 							</div>
 							<div className="overlay-panel overlay-right">
+								<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] md:w-[400px] md:h-[400px]">
+      <div className="absolute inset-0 rounded-full border border-white/20"></div>
+      <div className="absolute inset-8 rounded-full border border-white/15"></div>
+      <div className="absolute inset-16 rounded-full border border-white/10"></div>
+      <div className="absolute inset-24 rounded-full border border-white/5"></div>
+      <div className="absolute inset-0 rounded-full origin-center animate-sweep bg-gradient-to-tr from-white/20 to-transparent"></div>
+    </div>
+  </div>
 								<h1 className="font-bold text-3xl py-2 mt-2">Hey, Visitor!</h1>
 								<p className="font-bold p-4">Create your account and never lose track again.</p>
 								<button className="text-white bg-blue-600 p-2 w-32 rounded-lg mb-2" onClick={handleSignUpClick}>Sign Up</button>
