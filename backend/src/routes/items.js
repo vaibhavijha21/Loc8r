@@ -49,17 +49,39 @@ router.post('/', authMiddleware, upload.array('images', 5), async (req, res) => 
   }
 });
 
-// List items (joined with lost/found info)
+// List items (joined with lost/found info and poster name/email)
 router.get('/', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT i.ItemID, i.Item_name, i.Item_description, i.Item_status,
-             l.LostID, l.Lost_Date, l.PossibleLocation,
-             f.FoundID, f.Reported_Date, f.Location,
-             (SELECT Url FROM Images im WHERE im.ItemID = i.ItemID LIMIT 1) AS ThumbUrl
+      SELECT 
+        i.ItemID, 
+        i.Item_name, 
+        i.Item_description, 
+        i.Item_status,
+        l.LostID, 
+        l.Lost_Date, 
+        l.PossibleLocation,
+        f.FoundID, 
+        f.Reported_Date, 
+        f.Location,
+        -- first image as thumbnail
+        (SELECT Url FROM Images im WHERE im.ItemID = i.ItemID LIMIT 1) AS ThumbUrl,
+        -- name & email of the user who posted this item
+        CASE 
+          WHEN i.Item_status = 'lost' THEN ul.User_name
+          WHEN i.Item_status = 'found' THEN uf.User_name
+          ELSE NULL
+        END AS PosterName,
+        CASE 
+          WHEN i.Item_status = 'lost' THEN ul.Email
+          WHEN i.Item_status = 'found' THEN uf.Email
+          ELSE NULL
+        END AS PosterEmail
       FROM Item i
       LEFT JOIN LostItem l ON i.ItemID = l.ItemID
+      LEFT JOIN Users ul ON l.UserID = ul.UserID
       LEFT JOIN FoundItem f ON i.ItemID = f.ItemID
+      LEFT JOIN Users uf ON f.UserID = uf.UserID
       ORDER BY i.ItemID DESC
     `);
     res.json(rows);

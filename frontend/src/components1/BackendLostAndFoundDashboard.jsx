@@ -77,6 +77,8 @@ const FilterButton = ({ label, value, isSelected, onClick }) => {
 const ItemCard = ({ item, openModal }) => {
     const badgeColor = item.Item_status === "lost" ? "bg-red-600" : "bg-[#1e3a5f]";
     const formattedDate = new Date(item.Lost_Date || item.Reported_Date || new Date()).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+    // Try to resolve the name of the person who posted this item
+    const postedByName = item.PosterName || item.posterName || item.User_name || item.user_name || item.Name || item.name || '';
 
     return (
         <div
@@ -106,6 +108,12 @@ const ItemCard = ({ item, openModal }) => {
                     <div><span className=" font-bold text-gray-900">Category:</span> <span className="text-gray-600">{item.Item_category || 'Item'}</span></div>
                     <div><span className=" font-bold text-gray-900">Location:</span> <span className="text-gray-600">{item.PossibleLocation || item.Location || 'Unknown'}</span></div>
                     <div><span className="font-bold text-gray-900">Date:</span> <span className="text-gray-600">{formattedDate}</span></div>
+                    {postedByName && (
+                        <div className="flex items-center gap-1">
+                            <span className="font-bold text-gray-900">Posted by:</span>
+                            <span className="text-gray-700 break-all">{postedByName}</span>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -136,6 +144,8 @@ const ItemModal = ({ item, onClose, onOpenClaim }) => {
     const statusIcon = item.Item_status === "lost" ? AlertTriangle : CheckCircle;
     const formattedDate = new Date(item.Lost_Date || item.Reported_Date || new Date()).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const IconComponent = statusIcon;
+    // Try to resolve the name of the person who posted this item
+    const postedByName = item.PosterName || item.posterName || item.User_name || item.user_name || item.Name || item.name || '';
 
     return (
         <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
@@ -176,6 +186,16 @@ const ItemModal = ({ item, onClose, onOpenClaim }) => {
                             <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><List className="w-4 h-4"/> Detailed Description</label>
                             <p className="text-gray-700 bg-slate-100 p-4 rounded-lg border border-slate-600 text-sm font-semibold">{item.Item_description}</p>
                         </div>
+                        {postedByName && (
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                    <Mail className="w-4 h-4" /> Posted By
+                                </label>
+                                <p className="text-gray-700 bg-slate-100 p-3 rounded-lg border border-slate-600 text-sm font-semibold break-all">
+                                    {postedByName}
+                                </p>
+                            </div>
+                        )}
                         {item.Item_status === 'found' && item.FoundID && (
                             <div className="pt-4 border-t border-slate-700">
                                 <button
@@ -600,6 +620,8 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
             const data = await apiService.getItem(item.ItemID);
             // backend returns { item, lost, found, images, claims }
             const combined = {
+                // keep any extra fields (like PosterEmail) from the list item
+                ...item,
                 ...data.item,
                 Lost_Date: data.lost ? data.lost.Lost_Date : data.item.Lost_Date,
                 Reported_Date: data.found ? data.found.Reported_Date : data.item.Reported_Date,
