@@ -132,12 +132,13 @@ router.put("/claims/:claimId/status", authMiddleware, adminOnly, async (req, res
       return res.status(400).json({ message: 'Invalid status' });
     }
 
+    // Update claim status (do not assume an Updated_at column exists)
     await pool.query(
-      'UPDATE claim SET Claim_status = ?, Updated_at = NOW() WHERE ClaimID = ?',
+      'UPDATE claim SET Claim_status = ? WHERE ClaimID = ?',
       [status, claimId]
     );
 
-    // If approved, update item status and create history record
+    // If approved, update item status and create/update history record
     if (status === 'Approved') {
       const [claim] = await pool.query(
         'SELECT FoundID, UserID FROM claim WHERE ClaimID = ?',
@@ -145,16 +146,20 @@ router.put("/claims/:claimId/status", authMiddleware, adminOnly, async (req, res
       );
       
       if (claim.length > 0) {
-        // Create history record
+        const { FoundID, UserID } = claim[0];
+
+        // Insert or update history record (uses PK(UserID, FoundID))
         await pool.query(
-          'INSERT INTO HistoryRecord (ClaimID, FoundID, UserID, Status) VALUES (?, ?, ?, "Returned")',
-          [claimId, claim[0].FoundID, claim[0].UserID]
+          `INSERT INTO HistoryRecord (UserID, FoundID, Return_date)
+           VALUES (?, ?, NOW())
+           ON DUPLICATE KEY UPDATE Return_date = VALUES(Return_date)`,
+          [UserID, FoundID]
         );
 
-        // Update found item status
+        // Update found item status to Returned
         await pool.query(
           'UPDATE FoundItem SET Status = "Returned" WHERE FoundID = ?',
-          [claim[0].FoundID]
+          [FoundID]
         );
       }
     }

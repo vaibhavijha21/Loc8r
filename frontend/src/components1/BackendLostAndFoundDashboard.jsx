@@ -848,8 +848,8 @@ const BackendLostAndFoundDashboard = ({ setIsAuthenticated }) => {
                 addItem={() => {}} // This will be handled by the form submission
             />
             {isClaimModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
-                    <div className="bg-slate-800 rounded-xl max-w-lg w-full border border-slate-700 shadow-2xl">
+                <div className="fixed inset-0 bg-black/30 bg-opacity-70 z-50 flex items-center justify-center p-4">
+                    <div className="bg-gray-800 rounded-xl max-w-lg w-full border border-slate-700 shadow-2xl">
                         <div className="p-6">
                             <div className="flex justify-between items-start mb-4">
                                 <h3 className="text-xl font-bold text-white">Claim Item</h3>

@@ -82,6 +82,7 @@ router.get('/', async (req, res) => {
       LEFT JOIN Users ul ON l.UserID = ul.UserID
       LEFT JOIN FoundItem f ON i.ItemID = f.ItemID
       LEFT JOIN Users uf ON f.UserID = uf.UserID
+      WHERE (f.Status IS NULL OR f.Status <> 'Returned')
       ORDER BY i.ItemID DESC
     `);
     res.json(rows);
