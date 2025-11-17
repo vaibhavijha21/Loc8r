@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import profilePic from "../assets/profile.png";
-import { FaEnvelope, FaPhone, FaLinkedin, FaGithub } from "react-icons/fa";
+import { FaEnvelope, FaPhone, FaLinkedin, FaGithub, FaBars } from "react-icons/fa";
 import Sidebar from "../components1/Sidebar";
 import apiService from "../services/api";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 const Profile = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -50,12 +51,23 @@ const Profile = ({ setIsAuthenticated }) => {
   const COLORS = ["#EF4444", "#10B981"];
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans">
+    <div className="min-h-screen bg-slate-100 text-white font-sans">
       <div className="flex h-auto md:h-screen">
-        <Sidebar onLogout={handleLogout} />
+        <Sidebar onLogout={handleLogout} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <main className="flex-1 p-6 overflow-y-auto bg-black min-h-screen">
-          <section className="min-h-screen bg-black px-6 md:px-16 py-12">
+        {/* Sidebar toggle button (hidden while sidebar is open to avoid overlap) */}
+        {!sidebarOpen && (
+          <button
+            aria-label="Open sidebar"
+            onClick={() => setSidebarOpen(true)}
+            className="fixed top-6 left-6 z-50 p-2 rounded-md shadow-md transition-colors duration-150 bg-white text-slate-700"
+          >
+            <FaBars className="w-5 h-5" />
+          </button>
+        )}
+
+        <main className="flex-1 p-6 overflow-y-auto bg-slate-100 min-h-screen">
+          <section className="min-h-screen bg-slate-100 px-6 md:px-16 py-12">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
@@ -74,7 +86,7 @@ const Profile = ({ setIsAuthenticated }) => {
                   alt="User"
                   className="w-36 h-36 rounded-full border-4 border-gray-300 object-cover hover:scale-105 transition-transform duration-300"
                 />
-                <h2 className="text-4xl font-bold mt-2 text-black">
+                <h2 className="text-4xl font-bold mt-2 text-gray-700">
                   {user.name || "Unnamed User"}
                 </h2>
                 <p className="text-gray-600">{user.role || "Student, Chitkara University"}</p>
@@ -103,7 +115,7 @@ const Profile = ({ setIsAuthenticated }) => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                  <h3 className="text-2xl font-semibold border-b border-gray-300 pb-2 text-black">
+                  <h3 className="text-2xl font-semibold border-b border-gray-300 pb-2 text-gray-700">
                     Active Reports
                   </h3>
                   <div className="space-y-4">
@@ -113,7 +125,7 @@ const Profile = ({ setIsAuthenticated }) => {
                         className="bg-gray-200 p-5 rounded-xl shadow hover:scale-105 transition-transform duration-300"
                         whileHover={{ y: -5 }}
                       >
-                        <h4 className="text-lg font-semibold text-black">{report.title}</h4>
+                        <h4 className="text-lg font-semibold text-gray-700">{report.title}</h4>
                         <p className="text-gray-700 text-sm mt-1">{report.description}</p>
                         <span
                           className={`mt-2 inline-block text-sm ${
@@ -134,7 +146,7 @@ const Profile = ({ setIsAuthenticated }) => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
                 >
-                  <h3 className="text-xl font-semibold mb-3 text-black">Report Statistics</h3>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-800">Report Statistics</h3>
                   <ResponsiveContainer width="100%" height={200}>
                     <PieChart>
                       <Pie

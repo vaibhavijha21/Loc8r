@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../services/api';
 
-// Custom CSS for the authentication layout
+// Custom CSS for the authentication layout (includes responsive rules)
 const customStyles = `
 @import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
 * { box-sizing: border-box; }
@@ -142,6 +142,23 @@ input {
 	margin: 0 5px;
 	height: 40px;
 	width: 40px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+	.container { width: 100% !important; min-height: 600px; }
+	.overlay-panel h1 { font-size: 1.6rem; }
+}
+@media (max-width: 768px) {
+	body { height: auto; padding: 20px; }
+	.container { width: 100% !important; box-shadow: none; border-radius: 12px; min-height: auto; }
+	.form-container, .sign-in-container, .sign-up-container { position: relative; width: 100%; left: 0; transform: none !important; opacity: 1 !important; z-index: 2; }
+	.overlay-container { display: none; }
+	.overlay { display: none; }
+	form { padding: 20px; }
+	.container { padding: 12px; }
+	h2, .overlay-panel h1 { font-size: 1.25rem; }
+	button { width: 100%; padding: 10px 16px; }
 }
 `;
 
@@ -299,7 +316,7 @@ const BackendAuthentication = ({ setIsAuthenticated }) => {
 
 							{error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
 
-							<div className="flex items-center justify-center space-x-4 mb-2">
+							{/* <div className="flex items-center justify-center space-x-4 mb-2">
 								<label className="inline-flex items-center">
 									<input type="radio" name="signupRole" value="user" checked={signupRole === 'user'} onChange={() => setSignupRole('user')} className="mr-2" />
 									<span>User</span>
@@ -308,7 +325,7 @@ const BackendAuthentication = ({ setIsAuthenticated }) => {
 									<input type="radio" name="signupRole" value="admin" checked={signupRole === 'admin'} onChange={() => setSignupRole('admin')} className="mr-2" />
 									<span>Admin</span>
 								</label>
-							</div>
+							</div> */}
 
 							<input type="text" placeholder="Full Name" required value={signupUserName} onChange={(e) => setSignupUserName(e.target.value)} />
 							<input type="email" placeholder="Enter Email" required value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} />
